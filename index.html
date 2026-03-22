@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.1.2 // 統合管理システム</title>
+<title>COMP v2.1.4 // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -874,9 +874,10 @@ header{
   background:#eef4fc;
   flex-direction:column;
   overflow:hidden;
+  pointer-events:none;
 }
 @media(max-width:768px){
-  #mob{display:flex;}
+  #mob{display:flex;pointer-events:all;}
 }
 
 /* ヘッダー */
@@ -1373,7 +1374,7 @@ header{
 
 const SUPABASE_URL='https://zbtfhxfimmvqzwhmqmoj.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpidGZoeGZpbW12cXp3aG1xbW9qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3ODQ2NTIsImV4cCI6MjA4ODM2MDY1Mn0.X7b5QWO-NZdxwxaF_dVkMDpf6XDNea0MGiZdjsUiB9I';
-const APP_VERSION='2.1.2';
+const APP_VERSION='2.1.4';
 const APP_UPDATED='2026-03-10';
 const {createClient}=supabase;
 let db=createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -3053,11 +3054,25 @@ async function switchMode(mode){
   // 初期化（DOMContentLoaded後に呼ぶ）
   function init(){
     if(!isMob()) return;
-    // パスコード画面のz-indexを最前面に
+    var mob = document.getElementById('mob');
     var pc = document.getElementById('passcodeScreen');
+    // パスコード完了を監視して再描画
+    if(pc && pc.style.display !== 'none'){
+      var observer = new MutationObserver(function(){
+        if(pc.style.display === 'none'){
+          render();
+          observer.disconnect();
+        }
+      });
+      observer.observe(pc, {attributes:true, attributeFilter:['style']});
+    }
     if(pc) pc.style.zIndex = '99999';
-    render();
-    // データ更新時に再描画
+    try {
+      render();
+    } catch(e) {
+      var body = document.getElementById('mob-body');
+      if(body) body.innerHTML = '<div style="padding:20px;color:red;font-size:12px;word-break:break-all;">ERROR: '+e.message+'<br>'+e.stack+'</div>';
+    }
     window.mobRerender = render;
   }
 
