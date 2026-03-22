@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v1.9.2 // 統合管理システム</title>
+<title>COMP v2.0.0 // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -671,31 +671,121 @@ header{
 .hm-pool-drop.drag-over{border-color:var(--orange);background:#fff7ed;}
 
 /* ── PASSCODE SCREEN ── */
+/* ══════════════════════════════
+   PASSCODE SCREEN — ゲーム風リデザイン
+══════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap');
+
 #passcodeScreen{
-  position:fixed;inset:0;background:linear-gradient(135deg,#1e1f2e 0%,#2d2f4a 100%);
-  display:flex;align-items:center;justify-content:center;z-index:99999;
+  position:fixed;inset:0;z-index:99999;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  background:#06060f;
 }
+/* 背景の多重グラデーション */
+#passcodeScreen::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -10%,rgba(99,59,230,0.35) 0%,transparent 70%),
+    radial-gradient(ellipse 60% 40% at 80% 110%,rgba(201,130,30,0.2) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 30% at 20% 100%,rgba(30,80,200,0.15) 0%,transparent 60%);
+  pointer-events:none;
+}
+/* 光の粒子アニメ */
+#passcodeScreen::after{
+  content:'';position:absolute;inset:0;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%,rgba(255,255,255,0.4) 0%,transparent 100%),
+    radial-gradient(1px 1px at 70% 20%,rgba(255,255,255,0.3) 0%,transparent 100%),
+    radial-gradient(1px 1px at 40% 70%,rgba(255,255,255,0.2) 0%,transparent 100%),
+    radial-gradient(1px 1px at 85% 60%,rgba(255,255,255,0.3) 0%,transparent 100%),
+    radial-gradient(1px 1px at 10% 80%,rgba(255,255,255,0.2) 0%,transparent 100%);
+  animation:starTwinkle 4s ease-in-out infinite alternate;
+  pointer-events:none;
+}
+@keyframes starTwinkle{0%{opacity:0.4}100%{opacity:1}}
+
 .pc-box{
-  background:rgba(255,255,255,0.06);backdrop-filter:blur(20px);
-  border:1px solid rgba(255,255,255,0.12);border-radius:20px;
-  padding:40px 36px;width:320px;max-width:90vw;text-align:center;
+  position:relative;z-index:1;
+  width:300px;max-width:88vw;text-align:center;
+  padding:36px 28px 32px;
+  background:linear-gradient(160deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.02) 100%);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:24px;
+  box-shadow:0 0 0 1px rgba(150,100,255,0.1),0 30px 80px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.12);
+  backdrop-filter:blur(24px);
+  animation:pcBoxIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both;
 }
-.pc-logo{font-family:'Inter',sans-serif;font-size:22px;font-weight:800;letter-spacing:3px;color:#4361ee;margin-bottom:4px;}
-.pc-sub{font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,0.4);letter-spacing:2px;margin-bottom:32px;}
-.pc-dots{display:flex;justify-content:center;gap:12px;margin-bottom:28px;}
-.pc-dot{width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.2);transition:all 0.15s;}
-.pc-dot.filled{background:#4361ee;border-color:#4361ee;box-shadow:0 0 10px rgba(67,97,238,0.5);}
-.pc-dot.error{background:#dc2626;border-color:#dc2626;}
-.pc-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+@keyframes pcBoxIn{from{opacity:0;transform:translateY(30px) scale(0.92)}to{opacity:1;transform:none}}
+
+/* 上部の光沢ライン */
+.pc-box::before{
+  content:'';position:absolute;top:0;left:20%;right:20%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(170,120,255,0.8),rgba(255,200,80,0.6),transparent);
+  border-radius:1px;
+}
+
+.pc-logo{
+  font-family:'Cinzel',serif;font-size:28px;font-weight:900;
+  letter-spacing:6px;margin-bottom:2px;
+  background:linear-gradient(135deg,#c8a84b 0%,#f0d680 40%,#c8a84b 70%,#a07830 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 12px rgba(200,168,75,0.4));
+}
+.pc-sub{
+  font-size:9px;font-family:'DM Mono',monospace;
+  color:rgba(255,255,255,0.3);letter-spacing:3px;margin-bottom:28px;
+}
+
+/* ドット */
+.pc-dots{display:flex;justify-content:center;gap:14px;margin-bottom:28px;}
+.pc-dot{
+  width:12px;height:12px;border-radius:50%;
+  background:rgba(255,255,255,0.08);
+  border:1.5px solid rgba(255,255,255,0.15);
+  transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+}
+.pc-dot.filled{
+  background:linear-gradient(135deg,#a855f7,#6366f1);
+  border-color:rgba(168,85,247,0.8);
+  box-shadow:0 0 16px rgba(139,92,246,0.7),0 0 4px rgba(139,92,246,0.5);
+  transform:scale(1.2);
+}
+.pc-dot.error{
+  background:linear-gradient(135deg,#ef4444,#dc2626);
+  border-color:rgba(239,68,68,0.8);
+  box-shadow:0 0 16px rgba(239,68,68,0.7);
+}
+
+/* キーパッド */
+.pc-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
 .pc-key{
-  background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);
-  border-radius:12px;padding:16px 0;font-size:20px;font-weight:600;color:#fff;
-  cursor:pointer;transition:all 0.1s;font-family:'Inter',sans-serif;
+  position:relative;overflow:hidden;
+  background:linear-gradient(160deg,rgba(255,255,255,0.1) 0%,rgba(255,255,255,0.04) 100%);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:14px;padding:17px 0;
+  font-size:22px;font-weight:700;color:rgba(255,255,255,0.9);
+  cursor:pointer;font-family:'Cinzel',serif;
   -webkit-tap-highlight-color:transparent;user-select:none;
+  transition:all 0.12s;
+  box-shadow:0 4px 12px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.12);
 }
-.pc-key:active{background:rgba(67,97,238,0.4);border-color:#4361ee;transform:scale(0.94);}
-.pc-key.del{font-size:16px;color:rgba(255,255,255,0.6);}
-.pc-hint{font-size:11px;color:rgba(255,255,255,0.3);margin-top:8px;}
+.pc-key::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(255,255,255,0.08) 0%,transparent 50%);
+  border-radius:inherit;pointer-events:none;
+}
+.pc-key:active{
+  background:linear-gradient(160deg,rgba(139,92,246,0.4) 0%,rgba(99,59,230,0.3) 100%);
+  border-color:rgba(139,92,246,0.6);
+  transform:scale(0.92);
+  box-shadow:0 0 20px rgba(139,92,246,0.4),inset 0 1px 0 rgba(255,255,255,0.2);
+}
+.pc-key.del{font-size:18px;color:rgba(255,255,255,0.5);}
+.pc-hint{
+  font-size:10px;color:rgba(255,255,255,0.25);
+  margin-top:6px;letter-spacing:1px;font-family:'DM Mono',monospace;
+}
 .pc-shake{animation:pcShake 0.4s ease;}
 @keyframes pcShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
 
@@ -765,6 +855,128 @@ header{
   /* グリッドビュー非表示（スマホはリストのみ） */
   .view-toggle{display:none;}
 }
+
+/* ════════════════════════════════
+   MOBILE UI (768px以下のみ適用)
+   ════════════════════════════════ */
+:root{
+  --jopt:#2B5BA8;--jopt2:#1e4080;--jopt-l:#dce8f8;--jopt-ll:#eef4fc;
+}
+@media(max-width:768px){
+  /* PC用要素を非表示 */
+  header{display:none!important;}
+  .mode-page#mode-companion .comp-layout .sidebar{display:none;}
+  .shift-layout .sub-tabs{display:none!important;}
+  .shift-layout .shift-main-content > .shift-page#sp-edit .list-table-wrap,
+  .shift-layout .shift-main-content > .shift-page#sp-edit .grid-wrap{display:none;}
+
+  /* モバイルアプリ全体 */
+  body{background:var(--jopt-ll)!important;overflow:hidden;}
+  .mode-page{height:100vh;overflow:hidden;}
+
+  /* ── モバイルヘッダー ── */
+  .mob-header{
+    display:flex!important;align-items:center;justify-content:space-between;
+    padding:12px 16px 8px;
+    background:linear-gradient(135deg,var(--jopt),var(--jopt2));
+    position:sticky;top:0;z-index:100;
+  }
+  .mob-logo{font-family:'Inter',sans-serif;font-size:18px;font-weight:800;letter-spacing:2.5px;color:#fff;}
+  .mob-stats{display:flex;gap:8px;}
+  .mob-stat{text-align:center;}
+  .mob-stat-n{font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:#fff;line-height:1;}
+  .mob-stat-l{font-size:8px;color:rgba(255,255,255,0.6);letter-spacing:1px;}
+  .mob-rainbow{height:3px;background:linear-gradient(90deg,#60a5fa,#38bdf8,#34d399,#fbbf24);margin:0;}
+
+  /* ── ボトムナビ ── */
+  .mob-bnav{
+    display:flex!important;position:fixed;bottom:0;left:0;right:0;z-index:200;
+    padding:8px 8px calc(8px + env(safe-area-inset-bottom));
+    background:rgba(238,244,252,0.97);
+    border-top:1px solid rgba(43,91,168,0.1);
+    backdrop-filter:blur(12px);
+  }
+  .mob-bn{flex:1;padding:6px 0;border-radius:10px;font-size:9px;text-align:center;color:rgba(30,58,110,0.45);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all 0.15s;}
+  .mob-bn.active{background:rgba(43,91,168,0.1);color:var(--jopt);font-weight:700;}
+  .mob-bn-ic{font-size:14px;display:block;margin-bottom:2px;}
+
+  /* ── スクロール可能エリア ── */
+  .mob-scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:80px;}
+  .mob-scroll::-webkit-scrollbar{display:none;}
+
+  /* ── ホーム画面 ── */
+  .mob-section-title{padding:10px 14px 6px;font-size:9px;letter-spacing:1.5px;color:rgba(43,91,168,0.5);text-transform:uppercase;font-family:'DM Mono',monospace;}
+  .mob-ev-grid{padding:0 12px;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;}
+  .mob-ev-card{border-radius:18px;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform 0.12s;}
+  .mob-ev-card:active{transform:scale(0.96);}
+  .mob-ev-inner{padding:14px;}
+  .mob-ev-num{font-size:30px;font-weight:800;color:rgba(255,255,255,0.2);line-height:1;}
+  .mob-ev-name{font-size:13px;font-weight:700;color:#fff;margin-top:4px;line-height:1.3;}
+  .mob-ev-date{font-size:9px;color:rgba(255,255,255,0.6);margin-top:3px;}
+  .mob-ev-pills{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap;}
+  .mob-ep{background:rgba(255,255,255,0.2);border-radius:20px;padding:2px 8px;font-size:9px;color:#fff;font-weight:600;}
+  .mob-comp-row{margin:0 12px 6px;background:rgba(255,255,255,0.72);border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:10px;border:1px solid rgba(43,91,168,0.08);cursor:pointer;-webkit-tap-highlight-color:transparent;}
+  .mob-av{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;}
+  .mob-cn{font-size:13px;font-weight:600;color:#1e3a6e;}
+  .mob-cs{font-size:10px;color:rgba(30,58,110,0.45);margin-top:1px;}
+  .mob-cc{font-size:18px;font-weight:800;color:var(--jopt);margin-left:auto;}
+
+  /* ── 日付一覧 ── */
+  .mob-hero{background:linear-gradient(135deg,var(--jopt),var(--jopt2));padding:14px 16px 16px;}
+  .mob-hero-back{font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:8px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;}
+  .mob-hero-title{font-size:20px;font-weight:800;color:#fff;line-height:1.2;}
+  .mob-hero-sub{font-size:11px;color:rgba(255,255,255,0.6);margin-top:3px;}
+  .mob-hero-stats{display:flex;gap:6px;margin-top:12px;}
+  .mob-hs{background:rgba(255,255,255,0.15);border-radius:10px;padding:7px 10px;flex:1;text-align:center;}
+  .mob-hs-n{font-size:15px;font-weight:800;color:#fff;}
+  .mob-hs-l{font-size:8px;color:rgba(255,255,255,0.6);}
+  .mob-day-row{margin:0 12px 6px;background:rgba(255,255,255,0.72);border-radius:14px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;border:1px solid rgba(43,91,168,0.08);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform 0.1s;}
+  .mob-day-row:active{transform:scale(0.98);}
+  .mob-dr-date{font-size:14px;font-weight:700;color:#1e3a6e;}
+  .mob-dr-sub{font-size:10px;color:rgba(30,58,110,0.45);margin-top:2px;}
+  .mob-dr-right{display:flex;align-items:center;gap:8px;}
+  .mob-fill{width:50px;height:4px;background:rgba(43,91,168,0.1);border-radius:2px;overflow:hidden;}
+  .mob-bar{height:4px;border-radius:2px;}
+  .mob-pct{font-size:11px;font-weight:700;min-width:30px;text-align:right;}
+  .mob-arr{font-size:16px;color:rgba(43,91,168,0.3);}
+
+  /* ── スロット詳細 ── */
+  .mob-slot-hero{background:linear-gradient(135deg,var(--jopt),var(--jopt2));padding:14px 16px 16px;}
+  .mob-slot-code{font-size:32px;font-weight:800;color:#fff;line-height:1;}
+  .mob-slot-time{font-size:12px;color:rgba(255,255,255,0.65);margin-top:3px;}
+  .mob-cap-row{display:flex;align-items:center;gap:8px;margin-top:12px;}
+  .mob-cap-n{font-size:24px;font-weight:800;color:#fbbf24;}
+  .mob-cap-d{font-size:14px;color:rgba(255,255,255,0.45);}
+  .mob-cap-bar{flex:1;height:5px;background:rgba(255,255,255,0.15);border-radius:3px;overflow:hidden;}
+  .mob-cap-fill{height:5px;border-radius:3px;}
+  .mob-swipe-row{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;}
+  .mob-sw-btn{background:rgba(43,91,168,0.1);border-radius:20px;padding:5px 14px;font-size:11px;color:var(--jopt);font-weight:600;border:1px solid rgba(43,91,168,0.15);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all 0.1s;}
+  .mob-sw-btn:active{background:rgba(43,91,168,0.2);}
+  .mob-sw-mid{font-size:10px;color:rgba(43,91,168,0.4);}
+  .mob-msec{padding:6px 14px 4px;font-size:9px;letter-spacing:1.5px;color:rgba(43,91,168,0.5);text-transform:uppercase;font-family:'DM Mono',monospace;}
+  .mob-chips{padding:0 12px 8px;display:flex;flex-wrap:wrap;gap:6px;}
+  .mob-mchip{background:rgba(255,255,255,0.85);border-radius:10px;padding:6px 12px;font-size:12px;font-weight:600;color:#1e3a6e;border:1px solid rgba(43,91,168,0.12);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all 0.1s;user-select:none;}
+  .mob-mchip.ldr{background:rgba(254,243,199,0.95);color:#b45309;border-color:rgba(251,191,36,0.25);}
+  .mob-mchip.over{background:rgba(254,226,226,0.85);color:#b91c1c;border-color:rgba(239,68,68,0.15);}
+  .mob-mchip.pressing{transform:scale(0.92);background:rgba(254,226,226,0.9);border-color:#f87171;}
+  .mob-wchip{background:rgba(220,232,248,0.85);border-radius:10px;padding:6px 12px;font-size:12px;font-weight:600;color:var(--jopt);border:1px solid rgba(43,91,168,0.15);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all 0.12s;}
+  .mob-wchip:active{background:rgba(43,91,168,0.2);transform:scale(0.95);}
+
+  /* 削除トースト */
+  .mob-delete-toast{
+    position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:#1e3a6e;color:#fff;border-radius:14px;padding:12px 16px;
+    display:flex;align-items:center;gap:12px;font-size:13px;font-weight:600;
+    box-shadow:0 8px 24px rgba(30,58,110,0.3);z-index:500;
+    opacity:0;transition:all 0.2s;pointer-events:none;white-space:nowrap;
+  }
+  .mob-delete-toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:all;}
+  .mob-del-btn{background:#ef4444;color:#fff;border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;}
+  .mob-cancel-btn{background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;}
+}
+@media(min-width:769px){
+  .mob-header,.mob-bnav,.mob-screen{display:none!important;}
+}
 </style>
 </head>
 <body>
@@ -796,7 +1008,7 @@ header{
       <button class="pc-key" onclick="pcInput('0')">0</button>
       <button class="pc-key del" onclick="pcDel()">⌫</button>
     </div>
-    <div class="pc-hint" id="pcHint">パスコードを入力してください</div>
+    <div class="pc-hint" id="pcHint">— ENTER PASSCODE —</div>
   </div>
 </div>
 
@@ -1131,7 +1343,7 @@ header{
 
 const SUPABASE_URL='https://zbtfhxfimmvqzwhmqmoj.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpidGZoeGZpbW12cXp3aG1xbW9qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3ODQ2NTIsImV4cCI6MjA4ODM2MDY1Mn0.X7b5QWO-NZdxwxaF_dVkMDpf6XDNea0MGiZdjsUiB9I';
-const APP_VERSION='1.9.2';
+const APP_VERSION='2.0.0';
 const APP_UPDATED='2026-03-10';
 const {createClient}=supabase;
 let db=createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -2798,6 +3010,389 @@ async function switchMode(mode){
 }
 
 
+
+// ════════════════════════════════
+//  MOBILE UI
+// ════════════════════════════════
+let mobCurrentScreen='home';
+let mobCurrentEventId=null;
+let mobCurrentDate=null;
+let mobCurrentSlotCode=null;
+let mobDeleteTarget=null;
+let mobHoldTimer=null;
+
+function isMobile(){return window.innerWidth<=768;}
+
+function initMobApp(){
+  if(!isMobile())return;
+  document.getElementById('mobApp').style.display='block';
+  // PC UIを非表示
+  document.querySelector('header')&&(document.querySelector('header').style.display='none');
+  document.getElementById('mode-companion')&&(document.getElementById('mode-companion').style.display='none');
+  document.getElementById('mode-shift')&&(document.getElementById('mode-shift').style.display='none');
+  renderMobHome();
+}
+
+function mobNav(tab){
+  document.querySelectorAll('.mob-bn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('mbn-'+tab)?.classList.add('active');
+  if(tab==='home'){showMobScreen('home');renderMobHome();}
+  else if(tab==='shift'){showMobScreen('home');renderMobHome();}
+  else if(tab==='summary'){showMobScreen('summary');renderMobSummary();}
+  else if(tab==='hair'){showMobScreen('hair');renderMobHairMake();}
+}
+
+function showMobScreen(name){
+  mobCurrentScreen=name;
+  const map={home:'mobHome',days:'mobDays',slot:'mobSlot',summary:'mobSummary',hair:'mobHairMake'};
+  Object.values(map).forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  const target=map[name]||'mobHome';
+  const el=document.getElementById(target);
+  if(el){el.style.display='block';el.scrollTop=0;}
+}
+
+// ── ホーム画面 ──
+function renderMobHome(){
+  const el=document.getElementById('mobHome');if(!el)return;
+  // ヘッダー統計更新
+  const regEl=document.getElementById('mobRegCount');
+  const ngEl=document.getElementById('mobNgCount');
+  if(regEl)regEl.textContent=companions.length||0;
+  if(ngEl)ngEl.textContent=companions.filter(c=>c.ng).length||0;
+
+  // イベントカード
+  const evColors=[
+    'background:linear-gradient(135deg,#2B5BA8 0%,#1e4080 100%)',
+    'background:linear-gradient(135deg,#3b7dd8 0%,#2B5BA8 100%)',
+    'background:linear-gradient(135deg,#1e4080 0%,#0f2040 100%)',
+  ];
+  const evCards=shiftEvents.map((ev,i)=>`
+    <div class="mob-ev-card" style="${evColors[i%evColors.length]}" onclick="mobOpenEvent('${ev.id}')">
+      <div class="mob-ev-inner">
+        <div class="mob-ev-num">0${i+1}</div>
+        <div class="mob-ev-name">${ev.name}</div>
+        <div class="mob-ev-date">${[...new Set((ev.slots||[]).map(s=>s.date))].slice(0,1).join('')}〜${[...new Set((ev.slots||[]).map(s=>s.date))].slice(-1).join('')}</div>
+        <div class="mob-ev-pills">
+          <span class="mob-ep">${(ev.people||[]).length}名</span>
+          <span class="mob-ep">${(()=>{const t=(ev.slots||[]).reduce((s,sl)=>s+sl.capacity,0);const a=Object.values(ev.assigned||{}).reduce((s,n)=>s+n.length,0);return t>0?Math.round(a/t*100)+'%':'未開始';})()}</span>
+        </div>
+      </div>
+    </div>`).join('');
+
+  // コンパニオントップ
+  const pm={};Object.values(currentEvent().assigned||{}).forEach((names,)=>{});
+  const pm2={};shiftEvents.forEach(ev=>{Object.entries(ev.assigned||{}).forEach(([code,names])=>{names.forEach(n=>{if(!pm2[n])pm2[n]=0;pm2[n]++;});});});
+  const topComps=companions.slice(0,5).map((c,i)=>{
+    const colors=['linear-gradient(135deg,#5b8dd9,#1e4080)','linear-gradient(135deg,#f9a8d4,#db2777)','linear-gradient(135deg,#6ee7b7,#059669)','linear-gradient(135deg,#fcd34d,#d97706)','linear-gradient(135deg,#a78bfa,#7c3aed)'];
+    const cnt=pm2[c.name]||0;
+    return`<div class="mob-comp-row">
+      <div class="mob-av" style="background:${colors[i%colors.length]}">${c.name.slice(0,1)}</div>
+      <div><div class="mob-cn">${c.name}</div><div class="mob-cs">${c.leader?'👑 リーダー · ':''} ${c.height||''}cm</div></div>
+      <div class="mob-cc">${cnt||'—'}</div>
+    </div>`;}).join('');
+
+  el.innerHTML=`
+    <div class="mob-section-title">イベント</div>
+    <div class="mob-ev-grid">${evCards}</div>
+    <div class="mob-section-title" style="margin-top:8px;">コンパニオン</div>
+    ${topComps}
+    <div style="height:16px;"></div>`;
+}
+
+// ── イベント選択 → 日付一覧 ──
+function mobOpenEvent(evId){
+  mobCurrentEventId=evId;
+  // イベントを切り替え
+  if(currentEventId!==evId){
+    saveCurrentEventData();
+    currentEventId=evId;
+    syncGlobals();
+    syncHairMake();
+  }
+  showMobScreen('days');
+  renderMobDays();
+  document.getElementById('mbn-shift')?.classList.add('active');
+  document.getElementById('mbn-home')?.classList.remove('active');
+}
+
+function renderMobDays(){
+  const el=document.getElementById('mobDays');if(!el)return;
+  const ev=currentEvent();
+  const toMin=t=>{const m=t.match(/(\d+):(\d+)/);return m?+m[1]*60+ +m[2]:0;};
+  const days=[...new Set((ev.slots||[]).map(s=>s.date))];
+  const asgn=ev.assigned||{};
+  const totalCap=ev.slots.reduce((s,sl)=>s+sl.capacity,0);
+  const totalA=Object.values(asgn).reduce((s,n)=>s+n.length,0);
+  const fillRate=totalCap>0?Math.round(totalA/totalCap*100):0;
+  const fillColor=fillRate>=100?'#ef4444':fillRate>=80?'#2B5BA8':'#059669';
+
+  const dayRows=days.map(date=>{
+    const slots=ev.slots.filter(s=>s.date===date);
+    const cap=slots.reduce((s,sl)=>s+sl.capacity,0);
+    const cnt=slots.reduce((s,sl)=>s+(asgn[sl.code]||[]).length,0);
+    const pct=cap>0?Math.round(cnt/cap*100):0;
+    const over=cnt>cap;
+    const color=over?'#ef4444':pct>=80?'#2B5BA8':'#059669';
+    const barW=Math.min(100,pct);
+    const slotCodes=slots.map(s=>s.code).join('/');
+    return`<div class="mob-day-row" onclick="mobOpenDay('${date}')">
+      <div>
+        <div class="mob-dr-date">${date}</div>
+        <div class="mob-dr-sub">${slots.length}枠 · ${slotCodes}</div>
+      </div>
+      <div class="mob-dr-right">
+        <div class="mob-fill"><div class="mob-bar" style="width:${barW}%;background:${color};"></div></div>
+        <div class="mob-pct" style="color:${color};">${over?'超過':pct+'%'}</div>
+        <div class="mob-arr">›</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML=`
+    <div class="mob-hero">
+      <div class="mob-hero-back" onclick="showMobScreen('home');renderMobHome();">← ホーム</div>
+      <div class="mob-hero-title">${ev.name}</div>
+      <div class="mob-hero-sub">日付を選んでください</div>
+      <div class="mob-hero-stats">
+        <div class="mob-hs"><div class="mob-hs-n">${(ev.people||[]).length}</div><div class="mob-hs-l">参加者</div></div>
+        <div class="mob-hs"><div class="mob-hs-n">${new Set(Object.values(asgn).flat()).size}</div><div class="mob-hs-l">配置済</div></div>
+        <div class="mob-hs"><div class="mob-hs-n" style="color:${fillColor};">${fillRate}%</div><div class="mob-hs-l">充足率</div></div>
+        <div class="mob-hs"><div class="mob-hs-n">${(ev.people||[]).length-new Set(Object.values(asgn).flat()).size}</div><div class="mob-hs-l">未配置</div></div>
+      </div>
+    </div>
+    <div style="height:8px;"></div>
+    ${dayRows}
+    <div style="height:16px;"></div>`;
+}
+
+// ── 日付 → スロット詳細（スワイプ対応）──
+let mobDaySlots=[];
+let mobSlotIdx=0;
+let mobTouchStartX=0;
+
+function mobOpenDay(date){
+  mobCurrentDate=date;
+  const ev=currentEvent();
+  mobDaySlots=(ev.slots||[]).filter(s=>s.date===date);
+  mobSlotIdx=0;
+  showMobScreen('slot');
+  renderMobSlot();
+}
+
+function renderMobSlot(){
+  const el=document.getElementById('mobSlot');if(!el||!mobDaySlots.length)return;
+  const s=mobDaySlots[mobSlotIdx];
+  mobCurrentSlotCode=s.code;
+  const ev=currentEvent();
+  const asgn=ev.assigned||{};
+  const people=ev.people||[];
+  const myAsgn=asgn[s.code]||[];
+  const cap=s.capacity;
+  const over=myAsgn.length>cap;
+  const pct=cap>0?Math.min(100,Math.round(myAsgn.length/cap*100)):0;
+  const barColor=over?'linear-gradient(90deg,#fca5a5,#ef4444)':myAsgn.length>=cap?'linear-gradient(90deg,#fcd34d,#f59e0b)':'linear-gradient(90deg,#6ee7b7,#2B5BA8)';
+  const capColor=over?'#fbbf24':myAsgn.length>=cap?'#fcd34d':'#fff';
+  const capLabel=over?'超過':myAsgn.length>=cap?'満員':'余裕あり';
+  const capLabelColor=over?'#fca5a5':myAsgn.length>=cap?'#fcd34d':'rgba(255,255,255,0.6)';
+
+  const prevSlot=mobSlotIdx>0?mobDaySlots[mobSlotIdx-1]:null;
+  const nextSlot=mobSlotIdx<mobDaySlots.length-1?mobDaySlots[mobSlotIdx+1]:null;
+
+  // 配置済みチップ
+  const memberChips=myAsgn.map((n,i)=>{
+    const isLdr=ev.leaders?.[s.code]===n;
+    const isOver=i>=cap;
+    const cls='mob-mchip'+(isLdr?' ldr':isOver?' over':'');
+    return`<span class="${cls}" data-name="${n}" data-code="${s.code}">${isLdr?'👑 ':''}${n}</span>`;
+  }).join('');
+
+  // 希望者チップ
+  const wished=people.filter(p=>(Array.isArray(p.wishes)?p.wishes:[]).includes(s.code)&&!myAsgn.includes(p.name));
+  const wishChips=wished.map(p=>`<span class="mob-wchip" onclick="mobAddToSlot('${s.code}','${p.name.replace(/'/g,"\'")}')">＋ ${p.name}</span>`).join('');
+
+  el.innerHTML=`
+    <div class="mob-slot-hero">
+      <div class="mob-hero-back" onclick="showMobScreen('days');renderMobDays();">← ${mobCurrentDate}</div>
+      <div class="mob-slot-code">${s.code}</div>
+      <div class="mob-slot-time">${s.time} · ${s.date}</div>
+      <div class="mob-cap-row">
+        <div class="mob-cap-n" style="color:${capColor};">${myAsgn.length}</div>
+        <div class="mob-cap-d">/ ${cap}</div>
+        <div class="mob-cap-bar"><div class="mob-cap-fill" style="width:${pct}%;${barColor.startsWith('linear')?'background:'+barColor:'background:'+barColor};"></div></div>
+        <div style="font-size:10px;font-weight:700;color:${capLabelColor};">${capLabel}</div>
+      </div>
+    </div>
+    <div class="mob-swipe-row">
+      ${prevSlot?`<div class="mob-sw-btn" onclick="mobSlotIdx--;renderMobSlot()">‹ ${prevSlot.code}</div>`:'<div style="width:60px;"></div>'}
+      <div class="mob-sw-mid">← スワイプで移動 →</div>
+      ${nextSlot?`<div class="mob-sw-btn" onclick="mobSlotIdx++;renderMobSlot()">${nextSlot.code} ›</div>`:'<div style="width:60px;"></div>'}
+    </div>
+    <div class="mob-msec">配置済み · ${myAsgn.length}名　<span style="font-size:9px;color:rgba(43,91,168,0.35);">長押しで削除</span></div>
+    <div class="mob-chips" id="mobMemberChips">${memberChips||'<span style="font-size:12px;color:rgba(43,91,168,0.35);padding:4px 0;">まだ配置されていません</span>'}</div>
+    ${wished.length?`<div class="mob-msec" style="margin-top:4px;">希望者 · タップで追加</div><div class="mob-chips">${wishChips}</div>`:''}
+    <div style="height:16px;"></div>`;
+
+  // 長押し削除イベント
+  el.querySelectorAll('.mob-mchip').forEach(chip=>{
+    let timer=null;
+    chip.addEventListener('touchstart',()=>{
+      timer=setTimeout(()=>{
+        const name=chip.dataset.name;
+        const code=chip.dataset.code;
+        showMobDeleteToast(name,code);
+        if(navigator.vibrate)navigator.vibrate(30);
+      },600);
+    },{passive:true});
+    chip.addEventListener('touchend',()=>{clearTimeout(timer);},{passive:true});
+    chip.addEventListener('touchmove',()=>{clearTimeout(timer);},{passive:true});
+  });
+
+  // スワイプジェスチャー
+  el.addEventListener('touchstart',e=>{mobTouchStartX=e.touches[0].clientX;},{passive:true});
+  el.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-mobTouchStartX;
+    if(Math.abs(dx)>60){
+      if(dx<0&&mobSlotIdx<mobDaySlots.length-1){mobSlotIdx++;renderMobSlot();}
+      else if(dx>0&&mobSlotIdx>0){mobSlotIdx--;renderMobSlot();}
+    }
+  },{passive:true});
+}
+
+function mobAddToSlot(code,name){
+  addToSlot(code,name);
+  renderMobSlot();
+  showToast(name+' を追加しました','success');
+}
+
+function showMobDeleteToast(name,code){
+  mobDeleteTarget={name,code};
+  document.getElementById('mobDeleteName').textContent=name;
+  const toast=document.getElementById('mobDeleteToast');
+  toast.classList.add('show');
+  document.getElementById('mobDelConfirm').onclick=()=>{
+    removeFromSlot(code,name);
+    renderMobSlot();
+    hideMobDeleteToast();
+    showToast(name+' を削除しました');
+  };
+  setTimeout(hideMobDeleteToast,4000);
+}
+
+function hideMobDeleteToast(){
+  document.getElementById('mobDeleteToast')?.classList.remove('show');
+  mobDeleteTarget=null;
+}
+
+// ── 集計（モバイル） ──
+function renderMobSummary(){
+  const el=document.getElementById('mobSummary');if(!el)return;
+  const ev=currentEvent();
+  const asgn=ev.assigned||{};
+  const slots=ev.slots||[];
+  const people=ev.people||[];
+  const totalCap=slots.reduce((s,sl)=>s+sl.capacity,0);
+  const totalA=Object.values(asgn).reduce((s,n)=>s+n.length,0);
+  const allA=new Set(Object.values(asgn).flat());
+  const fillRate=totalCap>0?Math.round(totalA/totalCap*100):0;
+
+  const kpiCards=[
+    {n:people.length,l:'参加者',c:'var(--jopt)'},
+    {n:allA.size,l:'配置済み',c:'#059669'},
+    {n:people.length-allA.size,l:'未配置',c:people.length-allA.size>0?'#ef4444':'#059669'},
+    {n:fillRate+'%',l:'充足率',c:fillRate>=80?'#059669':fillRate>=50?'#d97706':'#ef4444'},
+  ].map(k=>`<div style="background:rgba(255,255,255,0.75);border-radius:14px;padding:12px;border:1px solid rgba(43,91,168,0.08);text-align:center;">
+    <div style="font-size:24px;font-weight:800;color:${k.c};">${k.n}</div>
+    <div style="font-size:10px;color:rgba(30,58,110,0.5);margin-top:3px;">${k.l}</div>
+  </div>`).join('');
+
+  const slotCards=slots.map(s=>{
+    const cnt=(asgn[s.code]||[]).length;
+    const over=cnt>s.capacity;
+    const color=over?'#ef4444':cnt>=s.capacity?'#d97706':'#059669';
+    const pct=s.capacity>0?Math.min(100,Math.round(cnt/s.capacity*100)):0;
+    return`<div style="background:rgba(255,255,255,0.72);border-radius:12px;padding:10px 14px;border:1px solid rgba(43,91,168,0.07);display:flex;align-items:center;gap:10px;">
+      <div style="font-size:15px;font-weight:800;color:var(--jopt);min-width:28px;">${s.code}</div>
+      <div style="flex:1;">
+        <div style="font-size:10px;color:rgba(30,58,110,0.45);margin-bottom:4px;">${s.date} ${s.time}</div>
+        <div style="height:4px;background:rgba(43,91,168,0.1);border-radius:2px;overflow:hidden;">
+          <div style="height:4px;width:${pct}%;background:${color};border-radius:2px;"></div>
+        </div>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:${color};min-width:36px;text-align:right;">${cnt}/${s.capacity}</div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML=`
+    <div class="mob-hero">
+      <div class="mob-hero-title">集計</div>
+      <div class="mob-hero-sub">${ev.name}</div>
+    </div>
+    <div style="padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">${kpiCards}</div>
+    <div class="mob-msec" style="margin-top:4px;">スロット別配置状況</div>
+    <div style="padding:0 12px;display:flex;flex-direction:column;gap:6px;">${slotCards}</div>
+    <div style="height:16px;"></div>`;
+}
+
+// ── ヘアメ（モバイル） ──
+function renderMobHairMake(){
+  const el=document.getElementById('mobHairMake');if(!el)return;
+  syncHairMake();
+  const ev=currentEvent();
+  const toMin=t=>{const m=t.match(/(\d+):(\d+)/);return m?+m[1]*60+ +m[2]:9999;};
+  const minToStr=m=>{const h=Math.floor((m+1440)%1440/60);const min=(m+1440)%60;return String(h).padStart(2,'0')+':'+String(min).padStart(2,'0');};
+  const slots=ev.slots||[];
+  const isNight=s=>{const m=s.time.match(/(\d+):(\d+)/);if(!m)return false;const h=+m[1];return h>=22||( h>=5&&h<8);};
+  const dayMap={};
+  slots.forEach(s=>{if(isNight(s))return;if(!dayMap[s.date])dayMap[s.date]=[];dayMap[s.date].push(s);});
+  const dayKeys=Object.keys(dayMap).sort();
+
+  if(!dayKeys.length){el.innerHTML=`<div class="mob-hero"><div class="mob-hero-title">ヘアメスケジュール</div></div><div style="padding:20px;text-align:center;color:rgba(43,91,168,0.4);font-size:13px;">CSVをインポートしてください</div>`;return;}
+
+  const dayBlocks=dayKeys.map(date=>{
+    const daySlots=dayMap[date].sort((a,b)=>toMin(a.time)-toMin(b.time));
+    const seen=new Set();const entries=[];
+    daySlots.forEach(s=>{
+      (ev.assigned[s.code]||[]).forEach(name=>{
+        if(seen.has(name))return;
+        const p=(ev.people||[]).find(pp=>pp.name===name);
+        if(!p||!p.hairMakeWish)return;
+        seen.add(name);entries.push({name,slotCode:s.code,slotStart:toMin(s.time)});
+      });
+    });
+    if(!entries.length)return`<div style="margin:0 12px 8px;background:rgba(255,255,255,0.6);border-radius:14px;padding:12px 14px;border:1px solid rgba(43,91,168,0.07);">
+      <div style="font-size:13px;font-weight:700;color:#1e3a6e;margin-bottom:4px;">${date}</div>
+      <div style="font-size:11px;color:rgba(43,91,168,0.4);">ヘアメ希望者なし</div>
+    </div>`;
+    const firstStart=entries[0].slotStart;
+    const hairStart=firstStart-entries.length*20-10;
+    const rows=entries.map((e,i)=>{
+      const t=hairStart+i*20;
+      const isLdr=isLeaderCapable(e.name);
+      return`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(43,91,168,0.06);">
+        <span style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--jopt);min-width:44px;">${minToStr(t)}</span>
+        <span style="font-size:13px;font-weight:600;color:#1e3a6e;flex:1;">${isLdr?'👑 ':''}${e.name}</span>
+        <span style="font-family:'DM Mono',monospace;font-size:10px;background:rgba(43,91,168,0.1);color:var(--jopt);border-radius:6px;padding:2px 7px;font-weight:700;">${e.slotCode}</span>
+      </div>`;
+    }).join('');
+    return`<div style="margin:0 12px 8px;background:rgba(255,255,255,0.72);border-radius:14px;padding:12px 14px;border:1px solid rgba(43,91,168,0.08);">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <div style="font-size:14px;font-weight:700;color:#1e3a6e;">${date}</div>
+        <div style="font-size:10px;font-weight:600;background:rgba(43,91,168,0.1);color:var(--jopt);border-radius:20px;padding:2px 9px;">${entries.length}名</div>
+      </div>
+      ${rows}
+    </div>`;
+  }).join('');
+
+  el.innerHTML=`
+    <div class="mob-hero">
+      <div class="mob-hero-title">ヘアメスケジュール</div>
+      <div class="mob-hero-sub">${ev.name}</div>
+    </div>
+    <div style="height:8px;"></div>
+    ${dayBlocks}
+    <div style="height:16px;"></div>`;
+}
+
 // ── PASSCODE ──
 let pcValue='';
 let pcCorrect=null;
@@ -2932,6 +3527,9 @@ window.addEventListener('DOMContentLoaded',async ()=>{
   }
   // タッチD&D有効化（iPhone Safari対応）
   enableTouchDnD();
+  // スマホUIの初期化
+  if(window.innerWidth<=768)initMobApp();
+  window.addEventListener('resize',()=>{if(window.innerWidth<=768&&document.getElementById('mobApp').style.display==='none')initMobApp();});
   // まずlocalStorageからロード（即座に画面表示）
   loadShiftFromStorage();
   loadCompanions();
