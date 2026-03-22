@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.0.0 // 統合管理システム</title>
+<title>COMP v2.0.1 // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -1343,7 +1343,7 @@ header{
 
 const SUPABASE_URL='https://zbtfhxfimmvqzwhmqmoj.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpidGZoeGZpbW12cXp3aG1xbW9qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3ODQ2NTIsImV4cCI6MjA4ODM2MDY1Mn0.X7b5QWO-NZdxwxaF_dVkMDpf6XDNea0MGiZdjsUiB9I';
-const APP_VERSION='2.0.0';
+const APP_VERSION='2.0.1';
 const APP_UPDATED='2026-03-10';
 const {createClient}=supabase;
 let db=createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -3527,12 +3527,12 @@ window.addEventListener('DOMContentLoaded',async ()=>{
   }
   // タッチD&D有効化（iPhone Safari対応）
   enableTouchDnD();
-  // スマホUIの初期化
-  if(window.innerWidth<=768)initMobApp();
-  window.addEventListener('resize',()=>{if(window.innerWidth<=768&&document.getElementById('mobApp').style.display==='none')initMobApp();});
   // まずlocalStorageからロード（即座に画面表示）
   loadShiftFromStorage();
   loadCompanions();
+  // スマホUIの初期化（ローカルデータ読み込み後）
+  if(window.innerWidth<=768)initMobApp();
+  window.addEventListener('resize',()=>{if(window.innerWidth<=768&&document.getElementById('mobApp').style.display==='none')initMobApp();});
   // その後Supabaseから最新データを取得してマージ
   updateSyncBadge('loading');
   const remote=await loadFromSupabase();
@@ -3545,6 +3545,8 @@ window.addEventListener('DOMContentLoaded',async ()=>{
       localStorage.setItem('shift_updated_at',remote.updated_at);
       loadShiftFromStorage();
       renderEventBar();renderShiftEdit();renderShiftStats();
+      // スマホUIもSupabase同期後に再描画
+      if(window.innerWidth<=768){renderMobHome();if(mobCurrentScreen==='days')renderMobDays();else if(mobCurrentScreen==='slot')renderMobSlot();}
       updateSyncBadge('synced',remote.updated_at);
     } else {
       updateSyncBadge('synced',remote.updated_at);
