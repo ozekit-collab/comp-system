@@ -2,8 +2,8 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>COMP v1.9.1 // 統合管理システム</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>COMP v1.9.2 // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -735,8 +735,10 @@ header{
 /* ── スマホ：シフト調整テーブル横スクロール ── */
 @media(max-width:768px){
   .list-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-  .list-table{min-width:520px;}
+  .list-table{min-width:600px;table-layout:auto !important;}
   .list-table td,.list-table th{padding:5px 6px;font-size:11px;}
+  .list-members{flex-wrap:wrap;max-width:200px;}
+  .list-wish-row{flex-wrap:wrap;max-width:120px;}
   .lchip{font-size:10px;padding:2px 6px;}
   .wchip{font-size:10px;padding:2px 6px;}
   /* ヘッダー：数字を小さく、ボタン整理 */
@@ -1129,7 +1131,7 @@ header{
 
 const SUPABASE_URL='https://zbtfhxfimmvqzwhmqmoj.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpidGZoeGZpbW12cXp3aG1xbW9qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3ODQ2NTIsImV4cCI6MjA4ODM2MDY1Mn0.X7b5QWO-NZdxwxaF_dVkMDpf6XDNea0MGiZdjsUiB9I';
-const APP_VERSION='1.9.1';
+const APP_VERSION='1.9.2';
 const APP_UPDATED='2026-03-10';
 const {createClient}=supabase;
 let db=createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -2861,54 +2863,65 @@ function checkSession(){
 
 // ── タッチD&D（iPhone Safari対応）──
 function enableTouchDnD(){
-  let touchDragEl=null,touchDragSrc=null,touchClone=null;
+  let touchDragEl=null,touchClone=null,holdTimer=null,isDragging=false;
+  let startX=0,startY=0;
   document.addEventListener('touchstart',e=>{
     const el=e.target.closest('[draggable="true"]');
     if(!el)return;
-    touchDragEl=el;
-    const rect=el.getBoundingClientRect();
-    touchClone=el.cloneNode(true);
-    touchClone.style.cssText=`position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;opacity:0.7;pointer-events:none;z-index:9999;transform:scale(1.05);transition:none;`;
-    document.body.appendChild(touchClone);
-    el.style.opacity='0.3';
-    // dragstartイベントを手動発火
-    el.dispatchEvent(new DragEvent('dragstart',{bubbles:true,cancelable:true,dataTransfer:new DataTransfer()}));
+    startX=e.touches[0].clientX;startY=e.touches[0].clientY;
+    isDragging=false;
+    holdTimer=setTimeout(()=>{
+      isDragging=true;
+      touchDragEl=el;
+      const rect=el.getBoundingClientRect();
+      touchClone=el.cloneNode(true);
+      touchClone.style.cssText=`position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;opacity:0.75;pointer-events:none;z-index:9999;transform:scale(1.08);transition:none;box-shadow:0 8px 24px rgba(0,0,0,0.25);`;
+      document.body.appendChild(touchClone);
+      el.style.opacity='0.3';
+      if(navigator.vibrate)navigator.vibrate(40);
+      el.dispatchEvent(new DragEvent('dragstart',{bubbles:true,cancelable:true,dataTransfer:new DataTransfer()}));
+    },800);
   },{passive:true});
-
   document.addEventListener('touchmove',e=>{
-    if(!touchClone)return;
+    const dx=Math.abs(e.touches[0].clientX-startX);
+    const dy=Math.abs(e.touches[0].clientY-startY);
+    if(!isDragging&&(dx>8||dy>8)){clearTimeout(holdTimer);holdTimer=null;return;}
+    if(!isDragging||!touchClone)return;
     e.preventDefault();
     const t=e.touches[0];
     touchClone.style.left=(t.clientX-touchClone.offsetWidth/2)+'px';
     touchClone.style.top=(t.clientY-touchClone.offsetHeight/2)+'px';
-    // ドロップターゲットのハイライト
     touchClone.style.display='none';
     const target=document.elementFromPoint(t.clientX,t.clientY);
     touchClone.style.display='';
+    document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'));
     if(target){
       const dropEl=target.closest('[data-key],[id="hmPoolDrop"],.hm-empty-slot,.hm-row,.hm-pool-item');
-      document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'));
       if(dropEl)dropEl.classList.add('drag-over');
     }
   },{passive:false});
-
   document.addEventListener('touchend',e=>{
-    if(!touchClone||!touchDragEl)return;
+    clearTimeout(holdTimer);holdTimer=null;
+    if(!isDragging||!touchClone||!touchDragEl){isDragging=false;return;}
     const t=e.changedTouches[0];
     touchClone.style.display='none';
     const target=document.elementFromPoint(t.clientX,t.clientY);
     touchClone.style.display='';
     if(target){
       const dropEl=target.closest('[data-key],[id="hmPoolDrop"],.hm-empty-slot,.hm-row,.hm-pool-item');
-      if(dropEl){
-        dropEl.dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:new DataTransfer()}));
-      }
+      if(dropEl)dropEl.dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:new DataTransfer()}));
     }
     document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'));
     touchDragEl.style.opacity='';
     touchDragEl.dispatchEvent(new DragEvent('dragend',{bubbles:true}));
     touchClone.remove();
-    touchClone=null;touchDragEl=null;touchDragSrc=null;
+    touchClone=null;touchDragEl=null;isDragging=false;
+  },{passive:true});
+  document.addEventListener('touchcancel',()=>{
+    clearTimeout(holdTimer);holdTimer=null;
+    if(touchClone)touchClone.remove();
+    if(touchDragEl)touchDragEl.style.opacity='';
+    touchClone=null;touchDragEl=null;isDragging=false;
   },{passive:true});
 }
 
