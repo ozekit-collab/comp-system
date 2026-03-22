@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.0.2 // 統合管理システム</title>
+<title>COMP v2.1.0 // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -856,136 +856,160 @@ header{
   .view-toggle{display:none;}
 }
 
-/* ════════════════════════════════
-   MOBILE UI (768px以下のみ適用)
-   ════════════════════════════════ */
-:root{
-  --jopt:#2B5BA8;--jopt2:#1e4080;--jopt-l:#dce8f8;--jopt-ll:#eef4fc;
+
+
+/* ════ MOBILE UI v3 ════ */
+:root{--jopt:#2B5BA8;--jopt2:#1e4080;}
+
+/* スマホでPC UIを完全非表示 */
+@media(max-width:768px){
+  header,#mode-companion,#mode-shift,.app-footer,#verBadge{display:none!important;}
+  body{overflow:hidden;background:#eef4fc;}
+}
+
+/* スマホアプリ本体 */
+#mob{
+  display:none;
+  position:fixed;inset:0;z-index:9999;
+  background:#eef4fc;
+  flex-direction:column;
+  overflow:hidden;
 }
 @media(max-width:768px){
-  /* PC用要素を非表示 */
-  header{display:none!important;}
-  .mode-page#mode-companion .comp-layout .sidebar{display:none;}
-  .shift-layout .sub-tabs{display:none!important;}
-  .shift-layout .shift-main-content > .shift-page#sp-edit .list-table-wrap,
-  .shift-layout .shift-main-content > .shift-page#sp-edit .grid-wrap{display:none;}
-
-  /* モバイルアプリ全体 */
-  body{background:var(--jopt-ll)!important;overflow:hidden;}
-  .mode-page{height:100vh;overflow:hidden;}
-
-  /* ── モバイルヘッダー ── */
-  .mob-header{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:12px 16px 8px;
-    background:linear-gradient(135deg,var(--jopt),var(--jopt2));
-    position:sticky;top:0;z-index:100;
-  }
-  .mob-logo{font-family:'Inter',sans-serif;font-size:18px;font-weight:800;letter-spacing:2.5px;color:#fff;}
-  .mob-stats{display:flex;gap:8px;}
-  .mob-stat{text-align:center;}
-  .mob-stat-n{font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:#fff;line-height:1;}
-  .mob-stat-l{font-size:8px;color:rgba(255,255,255,0.6);letter-spacing:1px;}
-  .mob-rainbow{height:3px;background:linear-gradient(90deg,#60a5fa,#38bdf8,#34d399,#fbbf24);margin:0;}
-
-  /* ── ボトムナビ ── */
-  .mob-bnav{
-    display:flex;position:fixed;bottom:0;left:0;right:0;z-index:200;
-    padding:8px 8px calc(8px + env(safe-area-inset-bottom));
-    background:rgba(238,244,252,0.97);
-    border-top:1px solid rgba(43,91,168,0.1);
-    backdrop-filter:blur(12px);
-  }
-  .mob-bn{flex:1;padding:6px 0;border-radius:10px;font-size:9px;text-align:center;color:rgba(30,58,110,0.45);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all 0.15s;}
-  .mob-bn.active{background:rgba(43,91,168,0.1);color:var(--jopt);font-weight:700;}
-  .mob-bn-ic{font-size:14px;display:block;margin-bottom:2px;}
-
-  /* ── スクロール可能エリア ── */
-  .mob-scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:80px;}
-  .mob-scroll::-webkit-scrollbar{display:none;}
-
-  /* ── ホーム画面 ── */
-  .mob-section-title{padding:10px 14px 6px;font-size:9px;letter-spacing:1.5px;color:rgba(43,91,168,0.5);text-transform:uppercase;font-family:'DM Mono',monospace;}
-  .mob-ev-grid{padding:0 12px;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;}
-  .mob-ev-card{border-radius:18px;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform 0.12s;}
-  .mob-ev-card:active{transform:scale(0.96);}
-  .mob-ev-inner{padding:14px;}
-  .mob-ev-num{font-size:30px;font-weight:800;color:rgba(255,255,255,0.2);line-height:1;}
-  .mob-ev-name{font-size:13px;font-weight:700;color:#fff;margin-top:4px;line-height:1.3;}
-  .mob-ev-date{font-size:9px;color:rgba(255,255,255,0.6);margin-top:3px;}
-  .mob-ev-pills{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap;}
-  .mob-ep{background:rgba(255,255,255,0.2);border-radius:20px;padding:2px 8px;font-size:9px;color:#fff;font-weight:600;}
-  .mob-comp-row{margin:0 12px 6px;background:rgba(255,255,255,0.72);border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:10px;border:1px solid rgba(43,91,168,0.08);cursor:pointer;-webkit-tap-highlight-color:transparent;}
-  .mob-av{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;}
-  .mob-cn{font-size:13px;font-weight:600;color:#1e3a6e;}
-  .mob-cs{font-size:10px;color:rgba(30,58,110,0.45);margin-top:1px;}
-  .mob-cc{font-size:18px;font-weight:800;color:var(--jopt);margin-left:auto;}
-
-  /* ── 日付一覧 ── */
-  .mob-hero{background:linear-gradient(135deg,var(--jopt),var(--jopt2));padding:14px 16px 16px;}
-  .mob-hero-back{font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:8px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;}
-  .mob-hero-title{font-size:20px;font-weight:800;color:#fff;line-height:1.2;}
-  .mob-hero-sub{font-size:11px;color:rgba(255,255,255,0.6);margin-top:3px;}
-  .mob-hero-stats{display:flex;gap:6px;margin-top:12px;}
-  .mob-hs{background:rgba(255,255,255,0.15);border-radius:10px;padding:7px 10px;flex:1;text-align:center;}
-  .mob-hs-n{font-size:15px;font-weight:800;color:#fff;}
-  .mob-hs-l{font-size:8px;color:rgba(255,255,255,0.6);}
-  .mob-day-row{margin:0 12px 6px;background:rgba(255,255,255,0.72);border-radius:14px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;border:1px solid rgba(43,91,168,0.08);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform 0.1s;}
-  .mob-day-row:active{transform:scale(0.98);}
-  .mob-dr-date{font-size:14px;font-weight:700;color:#1e3a6e;}
-  .mob-dr-sub{font-size:10px;color:rgba(30,58,110,0.45);margin-top:2px;}
-  .mob-dr-right{display:flex;align-items:center;gap:8px;}
-  .mob-fill{width:50px;height:4px;background:rgba(43,91,168,0.1);border-radius:2px;overflow:hidden;}
-  .mob-bar{height:4px;border-radius:2px;}
-  .mob-pct{font-size:11px;font-weight:700;min-width:30px;text-align:right;}
-  .mob-arr{font-size:16px;color:rgba(43,91,168,0.3);}
-
-  /* ── スロット詳細 ── */
-  .mob-slot-hero{background:linear-gradient(135deg,var(--jopt),var(--jopt2));padding:14px 16px 16px;}
-  .mob-slot-code{font-size:32px;font-weight:800;color:#fff;line-height:1;}
-  .mob-slot-time{font-size:12px;color:rgba(255,255,255,0.65);margin-top:3px;}
-  .mob-cap-row{display:flex;align-items:center;gap:8px;margin-top:12px;}
-  .mob-cap-n{font-size:24px;font-weight:800;color:#fbbf24;}
-  .mob-cap-d{font-size:14px;color:rgba(255,255,255,0.45);}
-  .mob-cap-bar{flex:1;height:5px;background:rgba(255,255,255,0.15);border-radius:3px;overflow:hidden;}
-  .mob-cap-fill{height:5px;border-radius:3px;}
-  .mob-swipe-row{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;}
-  .mob-sw-btn{background:rgba(43,91,168,0.1);border-radius:20px;padding:5px 14px;font-size:11px;color:var(--jopt);font-weight:600;border:1px solid rgba(43,91,168,0.15);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all 0.1s;}
-  .mob-sw-btn:active{background:rgba(43,91,168,0.2);}
-  .mob-sw-mid{font-size:10px;color:rgba(43,91,168,0.4);}
-  .mob-msec{padding:6px 14px 4px;font-size:9px;letter-spacing:1.5px;color:rgba(43,91,168,0.5);text-transform:uppercase;font-family:'DM Mono',monospace;}
-  .mob-chips{padding:0 12px 8px;display:flex;flex-wrap:wrap;gap:6px;}
-  .mob-mchip{background:rgba(255,255,255,0.85);border-radius:10px;padding:6px 12px;font-size:12px;font-weight:600;color:#1e3a6e;border:1px solid rgba(43,91,168,0.12);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all 0.1s;user-select:none;}
-  .mob-mchip.ldr{background:rgba(254,243,199,0.95);color:#b45309;border-color:rgba(251,191,36,0.25);}
-  .mob-mchip.over{background:rgba(254,226,226,0.85);color:#b91c1c;border-color:rgba(239,68,68,0.15);}
-  .mob-mchip.pressing{transform:scale(0.92);background:rgba(254,226,226,0.9);border-color:#f87171;}
-  .mob-wchip{background:rgba(220,232,248,0.85);border-radius:10px;padding:6px 12px;font-size:12px;font-weight:600;color:var(--jopt);border:1px solid rgba(43,91,168,0.15);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all 0.12s;}
-  .mob-wchip:active{background:rgba(43,91,168,0.2);transform:scale(0.95);}
-
-  /* 削除トースト */
-  .mob-delete-toast{
-    position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);
-    background:#1e3a6e;color:#fff;border-radius:14px;padding:12px 16px;
-    display:flex;align-items:center;gap:12px;font-size:13px;font-weight:600;
-    box-shadow:0 8px 24px rgba(30,58,110,0.3);z-index:500;
-    opacity:0;transition:all 0.2s;pointer-events:none;white-space:nowrap;
-  }
-  .mob-delete-toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:all;}
-  .mob-del-btn{background:#ef4444;color:#fff;border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;}
-  .mob-cancel-btn{background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;}
+  #mob{display:flex;}
 }
-@media(min-width:769px){
-  #mobApp{display:none;}
+
+/* ヘッダー */
+#mob .mh{
+  flex-shrink:0;
+  background:linear-gradient(135deg,var(--jopt),var(--jopt2));
+  padding:env(safe-area-inset-top,12px) 16px 10px;
+  display:flex;align-items:center;justify-content:space-between;
 }
-/* スマホではPC UIを非表示 */
-body.is-mobile header,
-body.is-mobile #mode-companion,
-body.is-mobile #mode-shift,
-body.is-mobile .app-footer{display:none!important;}
-body.is-mobile #mobApp{display:block!important;}
+#mob .mh-logo{font-family:'Inter',sans-serif;font-size:18px;font-weight:800;letter-spacing:2px;color:#fff;}
+#mob .mh-info{font-size:10px;color:rgba(255,255,255,0.65);background:rgba(255,255,255,0.15);border-radius:8px;padding:3px 9px;}
+#mob .mh-rainbow{height:3px;background:linear-gradient(90deg,#60a5fa,#38bdf8,#34d399,#fbbf24);flex-shrink:0;}
+
+/* スクロールエリア */
+#mob .mbody{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:72px;}
+#mob .mbody::-webkit-scrollbar{display:none;}
+
+/* ボトムナビ */
+#mob .mbnav{
+  position:fixed;bottom:0;left:0;right:0;
+  display:flex;
+  background:rgba(238,244,252,0.96);
+  border-top:1px solid rgba(43,91,168,0.1);
+  padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));
+  backdrop-filter:blur(16px);
+  z-index:100;
+}
+#mob .mbn{
+  flex:1;text-align:center;padding:6px 0;border-radius:10px;
+  font-size:9px;color:rgba(30,58,110,0.4);cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+#mob .mbn.on{background:rgba(43,91,168,0.1);color:var(--jopt);font-weight:700;}
+#mob .mbn-ic{font-size:14px;display:block;margin-bottom:1px;}
+
+/* ── 共通コンポーネント ── */
+#mob .hero{background:linear-gradient(135deg,var(--jopt),var(--jopt2));padding:14px 16px 18px;}
+#mob .hero-back{font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:8px;cursor:pointer;display:inline-block;}
+#mob .hero-title{font-size:20px;font-weight:800;color:#fff;}
+#mob .hero-sub{font-size:11px;color:rgba(255,255,255,0.6);margin-top:3px;}
+#mob .hero-stats{display:flex;gap:6px;margin-top:12px;}
+#mob .hs{background:rgba(255,255,255,0.15);border-radius:10px;padding:7px 10px;flex:1;text-align:center;}
+#mob .hs-n{font-size:15px;font-weight:800;color:#fff;}
+#mob .hs-l{font-size:8px;color:rgba(255,255,255,0.6);}
+#mob .sec{padding:10px 14px 5px;font-size:9px;letter-spacing:1.5px;color:rgba(43,91,168,0.5);text-transform:uppercase;font-family:'DM Mono',monospace;}
+#mob .card{margin:0 12px 6px;background:rgba(255,255,255,0.75);border-radius:14px;border:1px solid rgba(43,91,168,0.08);}
+#mob .card:active{background:rgba(255,255,255,0.9);}
+
+/* イベントカード */
+#mob .ev-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 12px 4px;}
+#mob .ev-card{border-radius:18px;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+#mob .ev-card:active{opacity:0.85;}
+#mob .ev-inner{padding:14px;}
+#mob .ev-n{font-size:28px;font-weight:800;color:rgba(255,255,255,0.22);line-height:1;}
+#mob .ev-name{font-size:13px;font-weight:700;color:#fff;margin-top:4px;line-height:1.3;}
+#mob .ev-date{font-size:9px;color:rgba(255,255,255,0.6);margin-top:3px;}
+#mob .ev-pill{display:inline-block;background:rgba(255,255,255,0.2);border-radius:20px;padding:2px 8px;font-size:9px;color:#fff;font-weight:600;margin-top:6px;margin-right:3px;}
+
+/* コンパニオン行 */
+#mob .cr{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;}
+#mob .av{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;}
+#mob .cr-name{font-size:13px;font-weight:600;color:#1e3a6e;}
+#mob .cr-sub{font-size:10px;color:rgba(30,58,110,0.4);margin-top:1px;}
+#mob .cr-cnt{font-size:18px;font-weight:800;color:var(--jopt);margin-left:auto;}
+
+/* 日付行 */
+#mob .dr{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+#mob .dr:active{background:rgba(255,255,255,0.95);}
+#mob .dr-date{font-size:14px;font-weight:700;color:#1e3a6e;}
+#mob .dr-sub{font-size:10px;color:rgba(30,58,110,0.4);margin-top:2px;}
+#mob .dr-right{display:flex;align-items:center;gap:8px;}
+#mob .dr-bar-wrap{width:50px;height:4px;background:rgba(43,91,168,0.1);border-radius:2px;overflow:hidden;}
+#mob .dr-bar{height:4px;border-radius:2px;}
+#mob .dr-pct{font-size:11px;font-weight:700;min-width:32px;text-align:right;}
+#mob .dr-arr{font-size:16px;color:rgba(43,91,168,0.25);}
+
+/* スロット詳細 */
+#mob .slot-hero{background:linear-gradient(135deg,var(--jopt),var(--jopt2));padding:14px 16px 18px;}
+#mob .slot-code{font-size:34px;font-weight:800;color:#fff;line-height:1;}
+#mob .slot-time{font-size:12px;color:rgba(255,255,255,0.65);margin-top:3px;}
+#mob .cap-row{display:flex;align-items:center;gap:8px;margin-top:12px;}
+#mob .cap-n{font-size:26px;font-weight:800;}
+#mob .cap-d{font-size:14px;color:rgba(255,255,255,0.4);}
+#mob .cap-bar{flex:1;height:5px;background:rgba(255,255,255,0.15);border-radius:3px;overflow:hidden;}
+#mob .cap-fill{height:5px;border-radius:3px;}
+#mob .cap-label{font-size:10px;font-weight:700;}
+#mob .sw-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;}
+#mob .sw-btn{background:rgba(43,91,168,0.1);border:1px solid rgba(43,91,168,0.15);border-radius:20px;padding:6px 16px;font-size:11px;font-weight:600;color:var(--jopt);cursor:pointer;-webkit-tap-highlight-color:transparent;}
+#mob .sw-btn:active{background:rgba(43,91,168,0.22);}
+#mob .sw-mid{font-size:10px;color:rgba(43,91,168,0.35);}
+#mob .chips{padding:0 12px 10px;display:flex;flex-wrap:wrap;gap:6px;}
+#mob .mc{background:rgba(255,255,255,0.85);border:1px solid rgba(43,91,168,0.12);border-radius:10px;padding:7px 13px;font-size:12px;font-weight:600;color:#1e3a6e;user-select:none;-webkit-tap-highlight-color:transparent;}
+#mob .mc.ldr{background:rgba(254,243,199,0.95);color:#b45309;border-color:rgba(251,191,36,0.3);}
+#mob .mc.over{background:rgba(254,226,226,0.85);color:#b91c1c;border-color:rgba(239,68,68,0.15);}
+#mob .wc{background:rgba(220,232,248,0.85);border:1px solid rgba(43,91,168,0.15);border-radius:10px;padding:7px 13px;font-size:12px;font-weight:600;color:var(--jopt);cursor:pointer;-webkit-tap-highlight-color:transparent;}
+#mob .wc:active{background:rgba(43,91,168,0.2);}
+#mob .empty{padding:20px;text-align:center;font-size:12px;color:rgba(43,91,168,0.35);}
+
+/* 削除確認トースト */
+#mob-toast{
+  display:none;position:fixed;bottom:82px;left:50%;transform:translateX(-50%);
+  background:#1e3a6e;color:#fff;border-radius:14px;padding:12px 16px;
+  display:none;align-items:center;gap:10px;font-size:13px;font-weight:600;
+  box-shadow:0 8px 24px rgba(30,58,110,0.35);z-index:99999;white-space:nowrap;
+}
+#mob-toast.show{display:flex;}
+#mob-toast .del-ok{background:#ef4444;color:#fff;border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;}
+#mob-toast .del-no{background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;}
+
 </style>
 </head>
 <body>
+
+<!-- ════ MOBILE APP v3 ════ -->
+<div id="mob">
+  <div class="mh">
+    <div class="mh-logo">COMP</div>
+    <div class="mh-info" id="mob-info">読み込み中...</div>
+  </div>
+  <div class="mh-rainbow"></div>
+  <div class="mbody" id="mob-body"></div>
+  <nav class="mbnav">
+    <div class="mbn on" id="mbn-home" onclick="mNav('home')"><span class="mbn-ic">🏠</span>ホーム</div>
+    <div class="mbn" id="mbn-shift" onclick="mNav('shift')"><span class="mbn-ic">📋</span>シフト</div>
+    <div class="mbn" id="mbn-summary" onclick="mNav('summary')"><span class="mbn-ic">📊</span>集計</div>
+    <div class="mbn" id="mbn-hair" onclick="mNav('hair')"><span class="mbn-ic">✨</span>ヘアメ</div>
+  </nav>
+</div>
+<div id="mob-toast">
+  <span id="mob-toast-name"></span>を削除しますか？
+  <button class="del-ok" id="mob-del-ok">削除</button>
+  <button class="del-no" onclick="mHideToast()">キャンセル</button>
+</div>
 
 <!-- PASSCODE SCREEN -->
 <div id="passcodeScreen">
@@ -1349,7 +1373,7 @@ body.is-mobile #mobApp{display:block!important;}
 
 const SUPABASE_URL='https://zbtfhxfimmvqzwhmqmoj.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpidGZoeGZpbW12cXp3aG1xbW9qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3ODQ2NTIsImV4cCI6MjA4ODM2MDY1Mn0.X7b5QWO-NZdxwxaF_dVkMDpf6XDNea0MGiZdjsUiB9I';
-const APP_VERSION='2.0.2';
+const APP_VERSION='2.1.0';
 const APP_UPDATED='2026-03-10';
 const {createClient}=supabase;
 let db=createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -3017,398 +3041,413 @@ async function switchMode(mode){
 
 
 
-// ════════════════════════════════
-//  MOBILE UI
-// ════════════════════════════════
-let mobCurrentScreen='home';
-let mobCurrentEventId=null;
-let mobCurrentDate=null;
-let mobCurrentSlotCode=null;
-let mobDeleteTarget=null;
-let mobHoldTimer=null;
 
-function isMobile(){return window.innerWidth<=768;}
+// ════ MOBILE APP v3 ════
+(function(){
+  // スマホ判定
+  function isMob(){ return window.innerWidth <= 768; }
 
-function initMobApp(){
-  if(!isMobile())return;
-  document.body.classList.add('is-mobile');
-  // PC UI要素を完全に非表示
-  const header=document.querySelector('header');
-  if(header)header.style.display='none';
-  const modeComp=document.getElementById('mode-companion');
-  if(modeComp)modeComp.style.display='none';
-  const modeShift=document.getElementById('mode-shift');
-  if(modeShift)modeShift.style.display='none';
-  // スマホAppを全画面表示
-  const app=document.getElementById('mobApp');
-  if(app){
-    app.style.cssText='display:block!important;position:fixed;inset:0;z-index:9000;overflow:hidden;background:linear-gradient(160deg,#dce8f8 0%,#eef4fc 100%);';
+  // 状態管理
+  var state = { screen:'home', evId:null, date:null, slotIdx:0, daySlots:[] };
+
+  // 初期化（DOMContentLoaded後に呼ぶ）
+  function init(){
+    if(!isMob()) return;
+    // パスコード画面のz-indexを最前面に
+    var pc = document.getElementById('passcodeScreen');
+    if(pc) pc.style.zIndex = '99999';
+    render();
+    // データ更新時に再描画
+    window.mobRerender = render;
   }
-  // パスコード画面はその上に
-  const pc=document.getElementById('passcodeScreen');
-  if(pc)pc.style.zIndex='99999';
-  renderMobHome();
-}
 
-function mobNav(tab){
-  document.querySelectorAll('.mob-bn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('mbn-'+tab)?.classList.add('active');
-  if(tab==='home'){showMobScreen('home');renderMobHome();}
-  else if(tab==='shift'){showMobScreen('home');renderMobHome();}
-  else if(tab==='summary'){showMobScreen('summary');renderMobSummary();}
-  else if(tab==='hair'){showMobScreen('hair');renderMobHairMake();}
-}
-
-function showMobScreen(name){
-  mobCurrentScreen=name;
-  const map={home:'mobHome',days:'mobDays',slot:'mobSlot',summary:'mobSummary',hair:'mobHairMake'};
-  Object.values(map).forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
-  const target=map[name]||'mobHome';
-  const el=document.getElementById(target);
-  if(el){el.style.display='block';el.scrollTop=0;}
-}
-
-// ── ホーム画面 ──
-function renderMobHome(){
-  const el=document.getElementById('mobHome');if(!el)return;
-  // ヘッダー統計更新
-  const regEl=document.getElementById('mobRegCount');
-  const ngEl=document.getElementById('mobNgCount');
-  if(regEl)regEl.textContent=companions.length||0;
-  if(ngEl)ngEl.textContent=companions.filter(c=>c.ng).length||0;
-
-  // イベントカード
-  const evColors=[
-    'background:linear-gradient(135deg,#2B5BA8 0%,#1e4080 100%)',
-    'background:linear-gradient(135deg,#3b7dd8 0%,#2B5BA8 100%)',
-    'background:linear-gradient(135deg,#1e4080 0%,#0f2040 100%)',
-  ];
-  const evCards=shiftEvents.map((ev,i)=>`
-    <div class="mob-ev-card" style="${evColors[i%evColors.length]}" onclick="mobOpenEvent('${ev.id}')">
-      <div class="mob-ev-inner">
-        <div class="mob-ev-num">0${i+1}</div>
-        <div class="mob-ev-name">${ev.name}</div>
-        <div class="mob-ev-date">${[...new Set((ev.slots||[]).map(s=>s.date))].slice(0,1).join('')}〜${[...new Set((ev.slots||[]).map(s=>s.date))].slice(-1).join('')}</div>
-        <div class="mob-ev-pills">
-          <span class="mob-ep">${(ev.people||[]).length}名</span>
-          <span class="mob-ep">${(()=>{const t=(ev.slots||[]).reduce((s,sl)=>s+sl.capacity,0);const a=Object.values(ev.assigned||{}).reduce((s,n)=>s+n.length,0);return t>0?Math.round(a/t*100)+'%':'未開始';})()}</span>
-        </div>
-      </div>
-    </div>`).join('');
-
-  // コンパニオントップ
-  const pm={};Object.values(currentEvent().assigned||{}).forEach((names,)=>{});
-  const pm2={};shiftEvents.forEach(ev=>{Object.entries(ev.assigned||{}).forEach(([code,names])=>{names.forEach(n=>{if(!pm2[n])pm2[n]=0;pm2[n]++;});});});
-  const topComps=companions.slice(0,5).map((c,i)=>{
-    const colors=['linear-gradient(135deg,#5b8dd9,#1e4080)','linear-gradient(135deg,#f9a8d4,#db2777)','linear-gradient(135deg,#6ee7b7,#059669)','linear-gradient(135deg,#fcd34d,#d97706)','linear-gradient(135deg,#a78bfa,#7c3aed)'];
-    const cnt=pm2[c.name]||0;
-    return`<div class="mob-comp-row">
-      <div class="mob-av" style="background:${colors[i%colors.length]}">${c.name.slice(0,1)}</div>
-      <div><div class="mob-cn">${c.name}</div><div class="mob-cs">${c.leader?'👑 リーダー · ':''} ${c.height||''}cm</div></div>
-      <div class="mob-cc">${cnt||'—'}</div>
-    </div>`;}).join('');
-
-  el.innerHTML=`
-    <div class="mob-section-title">イベント</div>
-    <div class="mob-ev-grid">${evCards}</div>
-    <div class="mob-section-title" style="margin-top:8px;">コンパニオン</div>
-    ${topComps}
-    <div style="height:16px;"></div>`;
-}
-
-// ── イベント選択 → 日付一覧 ──
-function mobOpenEvent(evId){
-  mobCurrentEventId=evId;
-  // イベントを切り替え
-  if(currentEventId!==evId){
-    saveCurrentEventData();
-    currentEventId=evId;
-    syncGlobals();
-    syncHairMake();
-  }
-  showMobScreen('days');
-  renderMobDays();
-  document.getElementById('mbn-shift')?.classList.add('active');
-  document.getElementById('mbn-home')?.classList.remove('active');
-}
-
-function renderMobDays(){
-  const el=document.getElementById('mobDays');if(!el)return;
-  const ev=currentEvent();
-  const toMin=t=>{const m=t.match(/(\d+):(\d+)/);return m?+m[1]*60+ +m[2]:0;};
-  const days=[...new Set((ev.slots||[]).map(s=>s.date))];
-  const asgn=ev.assigned||{};
-  const totalCap=ev.slots.reduce((s,sl)=>s+sl.capacity,0);
-  const totalA=Object.values(asgn).reduce((s,n)=>s+n.length,0);
-  const fillRate=totalCap>0?Math.round(totalA/totalCap*100):0;
-  const fillColor=fillRate>=100?'#ef4444':fillRate>=80?'#2B5BA8':'#059669';
-
-  const dayRows=days.map(date=>{
-    const slots=ev.slots.filter(s=>s.date===date);
-    const cap=slots.reduce((s,sl)=>s+sl.capacity,0);
-    const cnt=slots.reduce((s,sl)=>s+(asgn[sl.code]||[]).length,0);
-    const pct=cap>0?Math.round(cnt/cap*100):0;
-    const over=cnt>cap;
-    const color=over?'#ef4444':pct>=80?'#2B5BA8':'#059669';
-    const barW=Math.min(100,pct);
-    const slotCodes=slots.map(s=>s.code).join('/');
-    return`<div class="mob-day-row" onclick="mobOpenDay('${date}')">
-      <div>
-        <div class="mob-dr-date">${date}</div>
-        <div class="mob-dr-sub">${slots.length}枠 · ${slotCodes}</div>
-      </div>
-      <div class="mob-dr-right">
-        <div class="mob-fill"><div class="mob-bar" style="width:${barW}%;background:${color};"></div></div>
-        <div class="mob-pct" style="color:${color};">${over?'超過':pct+'%'}</div>
-        <div class="mob-arr">›</div>
-      </div>
-    </div>`;
-  }).join('');
-
-  el.innerHTML=`
-    <div class="mob-hero">
-      <div class="mob-hero-back" onclick="showMobScreen('home');renderMobHome();">← ホーム</div>
-      <div class="mob-hero-title">${ev.name}</div>
-      <div class="mob-hero-sub">日付を選んでください</div>
-      <div class="mob-hero-stats">
-        <div class="mob-hs"><div class="mob-hs-n">${(ev.people||[]).length}</div><div class="mob-hs-l">参加者</div></div>
-        <div class="mob-hs"><div class="mob-hs-n">${new Set(Object.values(asgn).flat()).size}</div><div class="mob-hs-l">配置済</div></div>
-        <div class="mob-hs"><div class="mob-hs-n" style="color:${fillColor};">${fillRate}%</div><div class="mob-hs-l">充足率</div></div>
-        <div class="mob-hs"><div class="mob-hs-n">${(ev.people||[]).length-new Set(Object.values(asgn).flat()).size}</div><div class="mob-hs-l">未配置</div></div>
-      </div>
-    </div>
-    <div style="height:8px;"></div>
-    ${dayRows}
-    <div style="height:16px;"></div>`;
-}
-
-// ── 日付 → スロット詳細（スワイプ対応）──
-let mobDaySlots=[];
-let mobSlotIdx=0;
-let mobTouchStartX=0;
-
-function mobOpenDay(date){
-  mobCurrentDate=date;
-  const ev=currentEvent();
-  mobDaySlots=(ev.slots||[]).filter(s=>s.date===date);
-  mobSlotIdx=0;
-  showMobScreen('slot');
-  renderMobSlot();
-}
-
-function renderMobSlot(){
-  const el=document.getElementById('mobSlot');if(!el||!mobDaySlots.length)return;
-  const s=mobDaySlots[mobSlotIdx];
-  mobCurrentSlotCode=s.code;
-  const ev=currentEvent();
-  const asgn=ev.assigned||{};
-  const people=ev.people||[];
-  const myAsgn=asgn[s.code]||[];
-  const cap=s.capacity;
-  const over=myAsgn.length>cap;
-  const pct=cap>0?Math.min(100,Math.round(myAsgn.length/cap*100)):0;
-  const barColor=over?'linear-gradient(90deg,#fca5a5,#ef4444)':myAsgn.length>=cap?'linear-gradient(90deg,#fcd34d,#f59e0b)':'linear-gradient(90deg,#6ee7b7,#2B5BA8)';
-  const capColor=over?'#fbbf24':myAsgn.length>=cap?'#fcd34d':'#fff';
-  const capLabel=over?'超過':myAsgn.length>=cap?'満員':'余裕あり';
-  const capLabelColor=over?'#fca5a5':myAsgn.length>=cap?'#fcd34d':'rgba(255,255,255,0.6)';
-
-  const prevSlot=mobSlotIdx>0?mobDaySlots[mobSlotIdx-1]:null;
-  const nextSlot=mobSlotIdx<mobDaySlots.length-1?mobDaySlots[mobSlotIdx+1]:null;
-
-  // 配置済みチップ
-  const memberChips=myAsgn.map((n,i)=>{
-    const isLdr=ev.leaders?.[s.code]===n;
-    const isOver=i>=cap;
-    const cls='mob-mchip'+(isLdr?' ldr':isOver?' over':'');
-    return`<span class="${cls}" data-name="${n}" data-code="${s.code}">${isLdr?'👑 ':''}${n}</span>`;
-  }).join('');
-
-  // 希望者チップ
-  const wished=people.filter(p=>(Array.isArray(p.wishes)?p.wishes:[]).includes(s.code)&&!myAsgn.includes(p.name));
-  const wishChips=wished.map(p=>`<span class="mob-wchip" onclick="mobAddToSlot('${s.code}','${p.name.replace(/'/g,"\'")}')">＋ ${p.name}</span>`).join('');
-
-  el.innerHTML=`
-    <div class="mob-slot-hero">
-      <div class="mob-hero-back" onclick="showMobScreen('days');renderMobDays();">← ${mobCurrentDate}</div>
-      <div class="mob-slot-code">${s.code}</div>
-      <div class="mob-slot-time">${s.time} · ${s.date}</div>
-      <div class="mob-cap-row">
-        <div class="mob-cap-n" style="color:${capColor};">${myAsgn.length}</div>
-        <div class="mob-cap-d">/ ${cap}</div>
-        <div class="mob-cap-bar"><div class="mob-cap-fill" style="width:${pct}%;${barColor.startsWith('linear')?'background:'+barColor:'background:'+barColor};"></div></div>
-        <div style="font-size:10px;font-weight:700;color:${capLabelColor};">${capLabel}</div>
-      </div>
-    </div>
-    <div class="mob-swipe-row">
-      ${prevSlot?`<div class="mob-sw-btn" onclick="mobSlotIdx--;renderMobSlot()">‹ ${prevSlot.code}</div>`:'<div style="width:60px;"></div>'}
-      <div class="mob-sw-mid">← スワイプで移動 →</div>
-      ${nextSlot?`<div class="mob-sw-btn" onclick="mobSlotIdx++;renderMobSlot()">${nextSlot.code} ›</div>`:'<div style="width:60px;"></div>'}
-    </div>
-    <div class="mob-msec">配置済み · ${myAsgn.length}名　<span style="font-size:9px;color:rgba(43,91,168,0.35);">長押しで削除</span></div>
-    <div class="mob-chips" id="mobMemberChips">${memberChips||'<span style="font-size:12px;color:rgba(43,91,168,0.35);padding:4px 0;">まだ配置されていません</span>'}</div>
-    ${wished.length?`<div class="mob-msec" style="margin-top:4px;">希望者 · タップで追加</div><div class="mob-chips">${wishChips}</div>`:''}
-    <div style="height:16px;"></div>`;
-
-  // 長押し削除イベント
-  el.querySelectorAll('.mob-mchip').forEach(chip=>{
-    let timer=null;
-    chip.addEventListener('touchstart',()=>{
-      timer=setTimeout(()=>{
-        const name=chip.dataset.name;
-        const code=chip.dataset.code;
-        showMobDeleteToast(name,code);
-        if(navigator.vibrate)navigator.vibrate(30);
-      },600);
-    },{passive:true});
-    chip.addEventListener('touchend',()=>{clearTimeout(timer);},{passive:true});
-    chip.addEventListener('touchmove',()=>{clearTimeout(timer);},{passive:true});
-  });
-
-  // スワイプジェスチャー
-  el.addEventListener('touchstart',e=>{mobTouchStartX=e.touches[0].clientX;},{passive:true});
-  el.addEventListener('touchend',e=>{
-    const dx=e.changedTouches[0].clientX-mobTouchStartX;
-    if(Math.abs(dx)>60){
-      if(dx<0&&mobSlotIdx<mobDaySlots.length-1){mobSlotIdx++;renderMobSlot();}
-      else if(dx>0&&mobSlotIdx>0){mobSlotIdx--;renderMobSlot();}
-    }
-  },{passive:true});
-}
-
-function mobAddToSlot(code,name){
-  addToSlot(code,name);
-  renderMobSlot();
-  showToast(name+' を追加しました','success');
-}
-
-function showMobDeleteToast(name,code){
-  mobDeleteTarget={name,code};
-  document.getElementById('mobDeleteName').textContent=name;
-  const toast=document.getElementById('mobDeleteToast');
-  toast.classList.add('show');
-  document.getElementById('mobDelConfirm').onclick=()=>{
-    removeFromSlot(code,name);
-    renderMobSlot();
-    hideMobDeleteToast();
-    showToast(name+' を削除しました');
+  // ナビ切り替え
+  window.mNav = function(tab){
+    ['home','shift','summary','hair'].forEach(function(t){
+      var el = document.getElementById('mbn-'+t);
+      if(el) el.classList.toggle('on', t===tab);
+    });
+    if(tab==='home'){ state.screen='home'; render(); }
+    else if(tab==='shift'){ state.screen='home'; render(); }
+    else if(tab==='summary'){ state.screen='summary'; render(); }
+    else if(tab==='hair'){ state.screen='hair'; render(); }
   };
-  setTimeout(hideMobDeleteToast,4000);
-}
 
-function hideMobDeleteToast(){
-  document.getElementById('mobDeleteToast')?.classList.remove('show');
-  mobDeleteTarget=null;
-}
+  // メインrender（stateに応じて描画）
+  function render(){
+    var body = document.getElementById('mob-body');
+    if(!body) return;
+    // ヘッダー情報更新
+    var info = document.getElementById('mob-info');
+    if(info) info.textContent = companions.length + '名登録';
+    body.scrollTop = 0;
+    if(state.screen==='home') body.innerHTML = renderHome();
+    else if(state.screen==='days') body.innerHTML = renderDays();
+    else if(state.screen==='slot') { body.innerHTML = renderSlot(); bindSlotEvents(); }
+    else if(state.screen==='summary') body.innerHTML = renderSummary();
+    else if(state.screen==='hair') body.innerHTML = renderHair();
+  }
 
-// ── 集計（モバイル） ──
-function renderMobSummary(){
-  const el=document.getElementById('mobSummary');if(!el)return;
-  const ev=currentEvent();
-  const asgn=ev.assigned||{};
-  const slots=ev.slots||[];
-  const people=ev.people||[];
-  const totalCap=slots.reduce((s,sl)=>s+sl.capacity,0);
-  const totalA=Object.values(asgn).reduce((s,n)=>s+n.length,0);
-  const allA=new Set(Object.values(asgn).flat());
-  const fillRate=totalCap>0?Math.round(totalA/totalCap*100):0;
+  // ── ① ホーム画面 ──
+  function renderHome(){
+    var html = '';
+    var evColors = [
+      'background:linear-gradient(135deg,#2B5BA8,#1e4080)',
+      'background:linear-gradient(135deg,#3b7dd8,#2B5BA8)',
+      'background:linear-gradient(135deg,#1a3a7a,#0f2040)'
+    ];
+    html += '<div class="sec" style="margin-top:8px;">イベント</div>';
+    html += '<div class="ev-grid">';
+    shiftEvents.forEach(function(ev, i){
+      var days = [...new Set((ev.slots||[]).map(function(s){return s.date;}))];
+      var cap = (ev.slots||[]).reduce(function(s,sl){return s+sl.capacity;},0);
+      var assigned_cnt = Object.values(ev.assigned||{}).reduce(function(s,n){return s+n.length;},0);
+      var rate = cap>0 ? Math.round(assigned_cnt/cap*100)+'%' : '未開始';
+      html += '<div class="ev-card" style="'+evColors[i%evColors.length]+'" onclick="mOpenEvent(''+ev.id+'')">';
+      html += '<div class="ev-inner">';
+      html += '<div class="ev-n">0'+(i+1)+'</div>';
+      html += '<div class="ev-name">'+ev.name+'</div>';
+      html += '<div class="ev-date">'+(days[0]||'')+'〜'+(days[days.length-1]||'')+'</div>';
+      html += '<span class="ev-pill">'+(ev.people||[]).length+'名</span>';
+      html += '<span class="ev-pill">'+rate+'</span>';
+      html += '</div></div>';
+    });
+    html += '</div>';
 
-  const kpiCards=[
-    {n:people.length,l:'参加者',c:'var(--jopt)'},
-    {n:allA.size,l:'配置済み',c:'#059669'},
-    {n:people.length-allA.size,l:'未配置',c:people.length-allA.size>0?'#ef4444':'#059669'},
-    {n:fillRate+'%',l:'充足率',c:fillRate>=80?'#059669':fillRate>=50?'#d97706':'#ef4444'},
-  ].map(k=>`<div style="background:rgba(255,255,255,0.75);border-radius:14px;padding:12px;border:1px solid rgba(43,91,168,0.08);text-align:center;">
-    <div style="font-size:24px;font-weight:800;color:${k.c};">${k.n}</div>
-    <div style="font-size:10px;color:rgba(30,58,110,0.5);margin-top:3px;">${k.l}</div>
-  </div>`).join('');
-
-  const slotCards=slots.map(s=>{
-    const cnt=(asgn[s.code]||[]).length;
-    const over=cnt>s.capacity;
-    const color=over?'#ef4444':cnt>=s.capacity?'#d97706':'#059669';
-    const pct=s.capacity>0?Math.min(100,Math.round(cnt/s.capacity*100)):0;
-    return`<div style="background:rgba(255,255,255,0.72);border-radius:12px;padding:10px 14px;border:1px solid rgba(43,91,168,0.07);display:flex;align-items:center;gap:10px;">
-      <div style="font-size:15px;font-weight:800;color:var(--jopt);min-width:28px;">${s.code}</div>
-      <div style="flex:1;">
-        <div style="font-size:10px;color:rgba(30,58,110,0.45);margin-bottom:4px;">${s.date} ${s.time}</div>
-        <div style="height:4px;background:rgba(43,91,168,0.1);border-radius:2px;overflow:hidden;">
-          <div style="height:4px;width:${pct}%;background:${color};border-radius:2px;"></div>
-        </div>
-      </div>
-      <div style="font-size:13px;font-weight:700;color:${color};min-width:36px;text-align:right;">${cnt}/${s.capacity}</div>
-    </div>`;
-  }).join('');
-
-  el.innerHTML=`
-    <div class="mob-hero">
-      <div class="mob-hero-title">集計</div>
-      <div class="mob-hero-sub">${ev.name}</div>
-    </div>
-    <div style="padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">${kpiCards}</div>
-    <div class="mob-msec" style="margin-top:4px;">スロット別配置状況</div>
-    <div style="padding:0 12px;display:flex;flex-direction:column;gap:6px;">${slotCards}</div>
-    <div style="height:16px;"></div>`;
-}
-
-// ── ヘアメ（モバイル） ──
-function renderMobHairMake(){
-  const el=document.getElementById('mobHairMake');if(!el)return;
-  syncHairMake();
-  const ev=currentEvent();
-  const toMin=t=>{const m=t.match(/(\d+):(\d+)/);return m?+m[1]*60+ +m[2]:9999;};
-  const minToStr=m=>{const h=Math.floor((m+1440)%1440/60);const min=(m+1440)%60;return String(h).padStart(2,'0')+':'+String(min).padStart(2,'0');};
-  const slots=ev.slots||[];
-  const isNight=s=>{const m=s.time.match(/(\d+):(\d+)/);if(!m)return false;const h=+m[1];return h>=22||( h>=5&&h<8);};
-  const dayMap={};
-  slots.forEach(s=>{if(isNight(s))return;if(!dayMap[s.date])dayMap[s.date]=[];dayMap[s.date].push(s);});
-  const dayKeys=Object.keys(dayMap).sort();
-
-  if(!dayKeys.length){el.innerHTML=`<div class="mob-hero"><div class="mob-hero-title">ヘアメスケジュール</div></div><div style="padding:20px;text-align:center;color:rgba(43,91,168,0.4);font-size:13px;">CSVをインポートしてください</div>`;return;}
-
-  const dayBlocks=dayKeys.map(date=>{
-    const daySlots=dayMap[date].sort((a,b)=>toMin(a.time)-toMin(b.time));
-    const seen=new Set();const entries=[];
-    daySlots.forEach(s=>{
-      (ev.assigned[s.code]||[]).forEach(name=>{
-        if(seen.has(name))return;
-        const p=(ev.people||[]).find(pp=>pp.name===name);
-        if(!p||!p.hairMakeWish)return;
-        seen.add(name);entries.push({name,slotCode:s.code,slotStart:toMin(s.time)});
+    // コンパニオントップ5
+    var cnt = {};
+    shiftEvents.forEach(function(ev){
+      Object.values(ev.assigned||{}).forEach(function(names){
+        names.forEach(function(n){ cnt[n]=(cnt[n]||0)+1; });
       });
     });
-    if(!entries.length)return`<div style="margin:0 12px 8px;background:rgba(255,255,255,0.6);border-radius:14px;padding:12px 14px;border:1px solid rgba(43,91,168,0.07);">
-      <div style="font-size:13px;font-weight:700;color:#1e3a6e;margin-bottom:4px;">${date}</div>
-      <div style="font-size:11px;color:rgba(43,91,168,0.4);">ヘアメ希望者なし</div>
-    </div>`;
-    const firstStart=entries[0].slotStart;
-    const hairStart=firstStart-entries.length*20-10;
-    const rows=entries.map((e,i)=>{
-      const t=hairStart+i*20;
-      const isLdr=isLeaderCapable(e.name);
-      return`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(43,91,168,0.06);">
-        <span style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--jopt);min-width:44px;">${minToStr(t)}</span>
-        <span style="font-size:13px;font-weight:600;color:#1e3a6e;flex:1;">${isLdr?'👑 ':''}${e.name}</span>
-        <span style="font-family:'DM Mono',monospace;font-size:10px;background:rgba(43,91,168,0.1);color:var(--jopt);border-radius:6px;padding:2px 7px;font-weight:700;">${e.slotCode}</span>
-      </div>`;
-    }).join('');
-    return`<div style="margin:0 12px 8px;background:rgba(255,255,255,0.72);border-radius:14px;padding:12px 14px;border:1px solid rgba(43,91,168,0.08);">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-        <div style="font-size:14px;font-weight:700;color:#1e3a6e;">${date}</div>
-        <div style="font-size:10px;font-weight:600;background:rgba(43,91,168,0.1);color:var(--jopt);border-radius:20px;padding:2px 9px;">${entries.length}名</div>
-      </div>
-      ${rows}
-    </div>`;
-  }).join('');
+    var top = companions.slice(0,5);
+    if(top.length){
+      var colors = ['linear-gradient(135deg,#5b8dd9,#1e4080)','linear-gradient(135deg,#f9a8d4,#db2777)','linear-gradient(135deg,#6ee7b7,#059669)','linear-gradient(135deg,#fcd34d,#d97706)','linear-gradient(135deg,#a78bfa,#7c3aed)'];
+      html += '<div class="sec" style="margin-top:4px;">コンパニオン</div>';
+      top.forEach(function(c,i){
+        html += '<div class="card"><div class="cr">';
+        html += '<div class="av" style="background:'+colors[i%colors.length]+'">'+c.name.slice(0,1)+'</div>';
+        html += '<div><div class="cr-name">'+c.name+'</div><div class="cr-sub">'+(c.leader?'👑 リーダー · ':'')+( c.height||'')+( c.height?'cm':'')+'</div></div>';
+        html += '<div class="cr-cnt">'+(cnt[c.name]||'—')+'</div>';
+        html += '</div></div>';
+      });
+    }
+    html += '<div style="height:8px;"></div>';
+    return html;
+  }
 
-  el.innerHTML=`
-    <div class="mob-hero">
-      <div class="mob-hero-title">ヘアメスケジュール</div>
-      <div class="mob-hero-sub">${ev.name}</div>
-    </div>
-    <div style="height:8px;"></div>
-    ${dayBlocks}
-    <div style="height:16px;"></div>`;
-}
+  // ── ② 日付一覧 ──
+  window.mOpenEvent = function(evId){
+    if(currentEventId !== evId){
+      saveCurrentEventData();
+      currentEventId = evId;
+      syncGlobals();
+      syncHairMake();
+    }
+    state.evId = evId;
+    state.screen = 'days';
+    document.getElementById('mbn-shift')?.classList.add('on');
+    document.getElementById('mbn-home')?.classList.remove('on');
+    render();
+  };
+
+  function renderDays(){
+    var ev = currentEvent();
+    var asgn = ev.assigned||{};
+    var days = [...new Set((ev.slots||[]).map(function(s){return s.date;}))];
+    var allA = new Set(Object.values(asgn).flat());
+    var totalCap = (ev.slots||[]).reduce(function(s,sl){return s+sl.capacity;},0);
+    var totalA = Object.values(asgn).reduce(function(s,n){return s+n.length;},0);
+    var rate = totalCap>0 ? Math.round(totalA/totalCap*100) : 0;
+    var rateColor = rate>=100?'#ef4444':rate>=70?'#fbbf24':'#fff';
+
+    var html = '<div class="hero">';
+    html += '<div class="hero-back" onclick="mGoHome()">← ホーム</div>';
+    html += '<div class="hero-title">'+ev.name+'</div>';
+    html += '<div class="hero-sub">日付を選んでください</div>';
+    html += '<div class="hero-stats">';
+    html += '<div class="hs"><div class="hs-n">'+(ev.people||[]).length+'</div><div class="hs-l">参加者</div></div>';
+    html += '<div class="hs"><div class="hs-n">'+allA.size+'</div><div class="hs-l">配置済</div></div>';
+    html += '<div class="hs"><div class="hs-n" style="color:'+rateColor+';">'+rate+'%</div><div class="hs-l">充足率</div></div>';
+    html += '<div class="hs"><div class="hs-n">'+((ev.people||[]).length-allA.size)+'</div><div class="hs-l">未配置</div></div>';
+    html += '</div></div>';
+    html += '<div style="height:8px;"></div>';
+
+    days.forEach(function(date){
+      var slots = (ev.slots||[]).filter(function(s){return s.date===date;});
+      var cap = slots.reduce(function(s,sl){return s+sl.capacity;},0);
+      var cnt = slots.reduce(function(s,sl){return s+(asgn[sl.code]||[]).length;},0);
+      var over = cnt > cap;
+      var pct = cap>0 ? Math.min(100,Math.round(cnt/cap*100)) : 0;
+      var color = over?'#ef4444':pct>=80?'#2B5BA8':'#059669';
+      html += '<div class="card" onclick="mOpenDay(''+date+'')">';
+      html += '<div class="dr">';
+      html += '<div><div class="dr-date">'+date+'</div><div class="dr-sub">'+slots.length+'枠 · '+slots.map(function(s){return s.code;}).join('/')+'</div></div>';
+      html += '<div class="dr-right">';
+      html += '<div class="dr-bar-wrap"><div class="dr-bar" style="width:'+pct+'%;background:'+color+';"></div></div>';
+      html += '<div class="dr-pct" style="color:'+color+';">'+(over?'超過':pct+'%')+'</div>';
+      html += '<div class="dr-arr">›</div>';
+      html += '</div></div></div>';
+    });
+    html += '<div style="height:8px;"></div>';
+    return html;
+  }
+
+  window.mGoHome = function(){
+    state.screen='home';
+    ['home','shift','summary','hair'].forEach(function(t){
+      document.getElementById('mbn-'+t)?.classList.toggle('on',t==='home');
+    });
+    render();
+  };
+
+  // ── ③ スロット詳細 ──
+  window.mOpenDay = function(date){
+    var ev = currentEvent();
+    state.date = date;
+    state.daySlots = (ev.slots||[]).filter(function(s){return s.date===date;});
+    state.slotIdx = 0;
+    state.screen = 'slot';
+    render();
+  };
+
+  function renderSlot(){
+    var ev = currentEvent();
+    var slots = state.daySlots;
+    if(!slots.length) return '<div class="empty">スロットなし</div>';
+    var s = slots[state.slotIdx];
+    var asgn = (ev.assigned||{})[s.code]||[];
+    var cap = s.capacity;
+    var over = asgn.length > cap;
+    var pct = cap>0 ? Math.min(100,Math.round(asgn.length/cap*100)) : 0;
+    var barColor = over?'linear-gradient(90deg,#fca5a5,#ef4444)':asgn.length>=cap?'linear-gradient(90deg,#fcd34d,#f59e0b)':'linear-gradient(90deg,#6ee7b7,#34d399)';
+    var capColor = over?'#fbbf24':'#fff';
+    var capLabel = over?'超過':asgn.length>=cap?'満員':'余裕あり';
+    var capLabelColor = over?'#fca5a5':asgn.length>=cap?'#fcd34d':'rgba(255,255,255,0.6)';
+    var prev = state.slotIdx>0 ? slots[state.slotIdx-1] : null;
+    var next = state.slotIdx<slots.length-1 ? slots[state.slotIdx+1] : null;
+    var ldr = (ev.leaders||{})[s.code];
+
+    var html = '<div class="slot-hero">';
+    html += '<div class="hero-back" onclick="mBackToDays()">← '+state.date+'</div>';
+    html += '<div class="slot-code">'+s.code+'</div>';
+    html += '<div class="slot-time">'+s.time+'</div>';
+    html += '<div class="cap-row">';
+    html += '<div class="cap-n" style="color:'+capColor+';">'+asgn.length+'</div>';
+    html += '<div class="cap-d">/ '+cap+'</div>';
+    html += '<div class="cap-bar"><div class="cap-fill" style="width:'+pct+'%;background:'+barColor+';"></div></div>';
+    html += '<div class="cap-label" style="color:'+capLabelColor+';">'+capLabel+'</div>';
+    html += '</div></div>';
+
+    // スワイプナビ
+    html += '<div class="sw-row">';
+    html += prev ? '<div class="sw-btn" onclick="mSlotPrev()">‹ '+prev.code+'</div>' : '<div style="width:70px;"></div>';
+    html += '<div class="sw-mid">← スワイプで移動 →</div>';
+    html += next ? '<div class="sw-btn" onclick="mSlotNext()">'+next.code+' ›</div>' : '<div style="width:70px;"></div>';
+    html += '</div>';
+
+    // 配置済み
+    html += '<div class="sec">配置済み · '+asgn.length+'名　<span style="font-size:9px;opacity:.6;">長押しで削除</span></div>';
+    html += '<div class="chips" id="mob-mchips">';
+    if(asgn.length){
+      asgn.forEach(function(n,i){
+        var isLdr = ldr===n;
+        var isOver = i>=cap;
+        var cls = 'mc'+(isLdr?' ldr':isOver?' over':'');
+        html += '<span class="'+cls+'" data-name="'+n+'" data-code="'+s.code+'">'+(isLdr?'👑 ':'')+n+'</span>';
+      });
+    } else {
+      html += '<span class="empty" style="padding:4px 0;">まだ配置されていません</span>';
+    }
+    html += '</div>';
+
+    // 希望者
+    var wished = (ev.people||[]).filter(function(p){
+      return (Array.isArray(p.wishes)?p.wishes:[]).includes(s.code) && !asgn.includes(p.name);
+    });
+    if(wished.length){
+      html += '<div class="sec">希望者 · タップで追加</div>';
+      html += '<div class="chips">';
+      wished.forEach(function(p){
+        html += '<span class="wc" onclick="mAddToSlot(''+s.code+'',''+p.name.replace(/'/g,"\'")+'')" >＋ '+p.name+'</span>';
+      });
+      html += '</div>';
+    }
+    html += '<div style="height:16px;"></div>';
+    return html;
+  }
+
+  function bindSlotEvents(){
+    // 長押し削除
+    document.querySelectorAll('#mob-mchips .mc').forEach(function(chip){
+      var timer = null;
+      chip.addEventListener('touchstart', function(e){
+        timer = setTimeout(function(){
+          if(navigator.vibrate) navigator.vibrate(30);
+          mShowToast(chip.dataset.name, chip.dataset.code);
+        }, 650);
+      }, {passive:true});
+      chip.addEventListener('touchend', function(){ clearTimeout(timer); }, {passive:true});
+      chip.addEventListener('touchmove', function(){ clearTimeout(timer); }, {passive:true});
+    });
+    // スワイプジェスチャー
+    var startX = 0;
+    var body = document.getElementById('mob-body');
+    if(!body) return;
+    body.addEventListener('touchstart', function(e){ startX=e.touches[0].clientX; }, {passive:true});
+    body.addEventListener('touchend', function(e){
+      var dx = e.changedTouches[0].clientX - startX;
+      if(Math.abs(dx) > 55){
+        if(dx < 0 && state.slotIdx < state.daySlots.length-1){ state.slotIdx++; render(); bindSlotEvents(); }
+        else if(dx > 0 && state.slotIdx > 0){ state.slotIdx--; render(); bindSlotEvents(); }
+      }
+    }, {passive:true});
+  }
+
+  window.mSlotNext = function(){ if(state.slotIdx<state.daySlots.length-1){state.slotIdx++;render();bindSlotEvents();} };
+  window.mSlotPrev = function(){ if(state.slotIdx>0){state.slotIdx--;render();bindSlotEvents();} };
+  window.mBackToDays = function(){ state.screen='days'; render(); };
+  window.mAddToSlot = function(code, name){
+    addToSlot(code, name);
+    render(); bindSlotEvents();
+    showToast(name+' を追加しました','success');
+  };
+
+  // 削除トースト
+  var toastTarget = null;
+  window.mShowToast = function(name, code){
+    toastTarget = {name:name, code:code};
+    var t = document.getElementById('mob-toast');
+    var tn = document.getElementById('mob-toast-name');
+    if(t && tn){ tn.textContent=name; t.classList.add('show'); }
+    document.getElementById('mob-del-ok').onclick = function(){
+      removeFromSlot(toastTarget.code, toastTarget.name);
+      mHideToast();
+      render(); bindSlotEvents();
+      showToast(name+' を削除しました');
+    };
+    setTimeout(mHideToast, 4000);
+  };
+  window.mHideToast = function(){
+    var t = document.getElementById('mob-toast');
+    if(t) t.classList.remove('show');
+    toastTarget = null;
+  };
+
+  // ── ④ 集計 ──
+  function renderSummary(){
+    var ev = currentEvent();
+    var asgn = ev.assigned||{};
+    var slots = ev.slots||[];
+    var people = ev.people||[];
+    var totalCap = slots.reduce(function(s,sl){return s+sl.capacity;},0);
+    var totalA = Object.values(asgn).reduce(function(s,n){return s+n.length;},0);
+    var allA = new Set(Object.values(asgn).flat());
+    var rate = totalCap>0 ? Math.round(totalA/totalCap*100) : 0;
+    var rateColor = rate>=80?'#059669':rate>=50?'#d97706':'#ef4444';
+
+    var html = '<div class="hero">';
+    html += '<div class="hero-title">集計</div>';
+    html += '<div class="hero-sub">'+ev.name+'</div></div>';
+
+    var kpis = [
+      {n:people.length, l:'参加者', c:'var(--jopt)'},
+      {n:allA.size, l:'配置済み', c:'#059669'},
+      {n:people.length-allA.size, l:'未配置', c:people.length-allA.size>0?'#ef4444':'#059669'},
+      {n:rate+'%', l:'充足率', c:rateColor}
+    ];
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px;">';
+    kpis.forEach(function(k){
+      html += '<div style="background:rgba(255,255,255,0.75);border-radius:14px;padding:14px;text-align:center;border:1px solid rgba(43,91,168,0.08);">';
+      html += '<div style="font-size:26px;font-weight:800;color:'+k.c+';">'+k.n+'</div>';
+      html += '<div style="font-size:10px;color:rgba(30,58,110,0.5);margin-top:3px;">'+k.l+'</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    html += '<div class="sec">スロット別</div>';
+    slots.forEach(function(s){
+      var cnt = (asgn[s.code]||[]).length;
+      var over = cnt > s.capacity;
+      var color = over?'#ef4444':cnt>=s.capacity?'#d97706':'#059669';
+      var pct = s.capacity>0 ? Math.min(100,Math.round(cnt/s.capacity*100)) : 0;
+      html += '<div class="card" style="margin-bottom:6px;">';
+      html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;">';
+      html += '<div style="font-size:15px;font-weight:800;color:var(--jopt);min-width:28px;">'+s.code+'</div>';
+      html += '<div style="flex:1;">';
+      html += '<div style="font-size:10px;color:rgba(30,58,110,0.4);margin-bottom:4px;">'+s.date+' '+s.time+'</div>';
+      html += '<div style="height:4px;background:rgba(43,91,168,0.1);border-radius:2px;"><div style="height:4px;width:'+pct+'%;background:'+color+';border-radius:2px;"></div></div>';
+      html += '</div>';
+      html += '<div style="font-size:13px;font-weight:700;color:'+color+';min-width:36px;text-align:right;">'+cnt+'/'+s.capacity+'</div>';
+      html += '</div></div>';
+    });
+    html += '<div style="height:8px;"></div>';
+    return html;
+  }
+
+  // ── ⑤ ヘアメ ──
+  function renderHair(){
+    syncHairMake();
+    var ev = currentEvent();
+    var toMin = function(t){ var m=t.match(/(\d+):(\d+)/); return m?+m[1]*60+ +m[2]:9999; };
+    var minToStr = function(m){ var h=Math.floor((m+1440)%1440/60); var min=(m+1440)%60; return String(h).padStart(2,'0')+':'+String(min).padStart(2,'0'); };
+    var slots = ev.slots||[];
+    var isNight = function(s){ var m=s.time.match(/(\d+):(\d+)/); if(!m)return false; var h=+m[1]; return h>=22||(h>=5&&h<8); };
+    var dayMap = {};
+    slots.forEach(function(s){ if(!isNight(s)){ if(!dayMap[s.date])dayMap[s.date]=[]; dayMap[s.date].push(s); } });
+    var days = Object.keys(dayMap).sort();
+
+    var html = '<div class="hero"><div class="hero-title">ヘアメイク</div><div class="hero-sub">'+ev.name+'</div></div>';
+    html += '<div style="height:8px;"></div>';
+
+    if(!days.length){
+      html += '<div class="empty">CSVをインポートしてください</div>';
+      return html;
+    }
+
+    days.forEach(function(date){
+      var daySlots = dayMap[date].sort(function(a,b){return toMin(a.time)-toMin(b.time);});
+      var seen = new Set(); var entries = [];
+      daySlots.forEach(function(s){
+        ((ev.assigned||{})[s.code]||[]).forEach(function(name){
+          if(seen.has(name)) return;
+          var p = (ev.people||[]).find(function(pp){return pp.name===name;});
+          if(!p||!p.hairMakeWish) return;
+          seen.add(name); entries.push({name:name,code:s.code,start:toMin(s.time)});
+        });
+      });
+      html += '<div class="card" style="margin-bottom:8px;">';
+      html += '<div style="padding:12px 14px;">';
+      html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">';
+      html += '<div style="font-size:14px;font-weight:700;color:#1e3a6e;">'+date+'</div>';
+      if(entries.length) html += '<div style="font-size:10px;font-weight:600;background:rgba(43,91,168,0.1);color:var(--jopt);border-radius:20px;padding:2px 9px;">'+entries.length+'名</div>';
+      html += '</div>';
+      if(!entries.length){
+        html += '<div style="font-size:11px;color:rgba(43,91,168,0.35);">ヘアメ希望者なし</div>';
+      } else {
+        var first = entries[0].start;
+        var start = first - entries.length*20 - 10;
+        entries.forEach(function(e,i){
+          var t = start + i*20;
+          var isLdr = isLeaderCapable(e.name);
+          html += '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(43,91,168,0.06);">';
+          html += '<span style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--jopt);min-width:44px;">'+minToStr(t)+'</span>';
+          html += '<span style="font-size:13px;font-weight:600;color:#1e3a6e;flex:1;">'+(isLdr?'👑 ':'')+e.name+'</span>';
+          html += '<span style="font-family:'DM Mono',monospace;font-size:10px;background:rgba(43,91,168,0.1);color:var(--jopt);border-radius:6px;padding:2px 7px;font-weight:700;">'+e.code+'</span>';
+          html += '</div>';
+        });
+      }
+      html += '</div></div>';
+    });
+    html += '<div style="height:8px;"></div>';
+    return html;
+  }
+
+  // ── 初期化 ──
+  window.mobInit = init;
+  window.mobRerender = render;
+})();
 
 // ── PASSCODE ──
 let pcValue='';
@@ -3551,9 +3590,8 @@ window.addEventListener('DOMContentLoaded',async ()=>{
   // まずlocalStorageからロード（即座に画面表示）
   loadShiftFromStorage();
   loadCompanions();
-  // スマホUIの初期化（ローカルデータ読み込み後）
-  if(window.innerWidth<=768)initMobApp();
-  window.addEventListener('resize',()=>{if(window.innerWidth<=768&&document.getElementById('mobApp').style.display==='none')initMobApp();});
+  // スマホUI初期化（ローカルデータ読み込み後）
+  if(window.innerWidth<=768) setTimeout(mobInit, 50);
   // その後Supabaseから最新データを取得してマージ
   updateSyncBadge('loading');
   const remote=await loadFromSupabase();
