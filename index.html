@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.3.8-debug // 統合管理システム</title>
+<title>COMP v2.4.5 // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -574,6 +574,7 @@ header{
 }
 .card-tag.tag-drink{background:#dbeafe;border-color:#93c5fd;}
 .card-tag.tag-tattoo{background:#fee2e2;border-color:#fca5a5;}
+.card-tag.tag-newbie{background:#dcfce7;border-color:#86efac;}
 .tag-leader{background:#fef3c7;border-color:#fde68a;}
 .tag-mic{background:#ede9fe;border-color:#ddd6fe;}
 .tag-svc{background:#fce7f3;border-color:#fbcfe8;}
@@ -1180,12 +1181,13 @@ header{
                 <tr>
                   <th>Slot</th><th>日付</th><th>時間</th><th>人/定員</th>
                   <th>👑リーダー</th>
-                  <th>配置済み <span style="font-size:8px;font-weight:400;opacity:.6">ドラッグ移動・ダブルクリック削除</span>
+                  <th>配置済み <span style="font-size:8px;font-weight:400;opacity:.6">ドラッグ移動・ダブルクリックで詳細</span>
                     <span style="float:right;display:flex;gap:6px;font-size:8px;font-weight:400">
                       <span style="background:#fff7ed;color:#c2410c;border:1px solid #fb923c;border-radius:3px;padding:0 3px">!</span>希望外
-                      <span style="background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5;border-radius:3px;padding:0 3px">!!</span>インターバル
                       <span style="background:#fdf4ff;color:#7e22ce;border:1px solid #d8b4fe;border-radius:3px;padding:0 3px">↕</span>飛び枠
-                      <span style="background:#fefce8;color:#92400e;border:1px solid #fcd34d;border-radius:3px;padding:0 3px">⌛</span>長時間
+                      <span style="background:#fefce8;color:#854d0e;border:1px solid #fcd34d;border-radius:3px;padding:0 3px">3連</span>3枠連続
+                      <span style="background:#fff1f2;color:#991b1b;border:1px solid #fca5a5;border-radius:3px;padding:0 3px">4連+</span>4枠以上
+                      <span style="background:#fff1f2;color:#991b1b;border:1px solid #fca5a5;border-radius:3px;padding:0 3px">翌朝</span>前日深夜→早朝
                       <span style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;border-radius:3px;padding:0 3px">🃏</span>ディーラー
                     </span>
                   </th>
@@ -1202,11 +1204,12 @@ header{
               <span class="ml-item"><span class="sv-chip" style="cursor:default;font-size:10px;padding:1px 6px">名前</span>通常配置</span>
               <span class="ml-item"><span class="sv-chip sv-leader" style="cursor:default;font-size:10px;padding:1px 6px">👑 名前</span>リーダー</span>
               <span class="ml-item"><span class="ml-swatch" style="background:#fff7ed;color:#9a3412;border-color:#fb923c">!</span>希望外</span>
-              <span class="ml-item"><span class="ml-swatch" style="background:#fee2e2;color:#991b1b;border-color:#fca5a5;font-size:8px">!!</span>インターバル(&lt;8h)</span>
               <span class="ml-item"><span class="ml-swatch" style="background:#fdf4ff;color:#6b21a8;border-color:#d8b4fe">↕</span>同日飛び枠</span>
-              <span class="ml-item"><span class="ml-swatch" style="background:#fefce8;color:#92400e;border-color:#fcd34d">⌛</span>長時間(&ge;13h)</span>
+              <span class="ml-item"><span class="ml-swatch" style="background:#fefce8;color:#854d0e;border-color:#fcd34d;font-size:8px">3連</span>3枠連続</span>
+              <span class="ml-item"><span class="ml-swatch" style="background:#fff1f2;color:#991b1b;border-color:#fca5a5;font-size:8px">4連+</span>4枠以上</span>
+              <span class="ml-item"><span class="ml-swatch" style="background:#fff1f2;color:#991b1b;border-color:#fca5a5;font-size:8px">翌朝</span>前日深夜→早朝</span>
               <span class="ml-item"><span class="sv-chip" style="cursor:default;font-size:10px;padding:1px 6px;background:#fef3c7;border-color:#fde68a;color:#92400e">🃏 名前</span>ディーラー</span>
-              <span style="margin-left:auto;font-size:9px;color:#9ca3af">チップをドラッグして移動 / ダブルクリックで削除</span>
+              <span style="margin-left:auto;font-size:9px;color:#9ca3af">チップをドラッグして移動 / ダブルクリックで詳細</span>
             </div>
           </div>
         </div>
@@ -1338,6 +1341,7 @@ header{
         <label class="toggle-item"><input type="checkbox" id="fdealer"><div class="toggle-box">✓</div><span class="toggle-label">🃏 ディーラー</span></label>
         <label class="toggle-item"><input type="checkbox" id="fdrink"><div class="toggle-box">✓</div><span class="toggle-label">🍺 飲酒可</span></label>
         <label class="toggle-item"><input type="checkbox" id="ftattoo"><div class="toggle-box">✓</div><span class="toggle-label">⚠️ 傷・タトゥー</span></label>
+        <label class="toggle-item"><input type="checkbox" id="fnewbie"><div class="toggle-box">✓</div><span class="toggle-label">🔰 新人</span></label>
       </div>
       <div class="form-section-title">👗 衣装制限</div>
       <div class="form-group full"><input type="text" class="form-input" id="fcostume" placeholder="例：SPADIE衣装不可、スカート不可 など（空白でOK）"></div>
@@ -1463,7 +1467,7 @@ function rowToLocal(r){
     igAccount:r.ig_account||'',igFollowers:r.ig_followers||'',
     ttAccount:r.tt_account||'',ttFollowers:r.tt_followers||'',
     agency:r.agency||'',notes:r.notes||'',
-    mic:!!r.mic,service:!!r.service,leader:!!r.leader,dealer:!!r.dealer,drink:!!r.drink,tattoo:!!r.tattoo,
+    mic:!!r.mic,service:!!r.service,leader:!!r.leader,dealer:!!r.dealer,drink:!!r.drink,tattoo:!!r.tattoo,newbie:!!r.newbie,
     isNG:!!r.is_ng,
     photos:getPhotos(r),
     sortOrder:r.sort_order||0,
@@ -1479,7 +1483,7 @@ function localToRow(c){
     ig_account:c.igAccount||null,ig_followers:c.igFollowers||null,
     tt_account:c.ttAccount||null,tt_followers:c.ttFollowers||null,
     agency:c.agency||null,notes:c.notes||null,
-    mic:!!c.mic,service:!!c.service,leader:!!c.leader,dealer:!!c.dealer,drink:!!c.drink,tattoo:!!c.tattoo,
+    mic:!!c.mic,service:!!c.service,leader:!!c.leader,dealer:!!c.dealer,drink:!!c.drink,tattoo:!!c.tattoo,newbie:!!c.newbie,
     is_ng:!!c.isNG,
     photo:photos?photos[0]:null,
     photos:photos,
@@ -1629,6 +1633,7 @@ function renderGrid(list){
             ${c.dealer?'<span class="card-tag tag-dealer" title="ディーラー">🃏</span>':''}
             ${c.drink?'<span class="card-tag tag-drink" title="飲酒可">🍺</span>':''}
             ${c.tattoo?'<span class="card-tag tag-tattoo" title="傷・タトゥーあり">⚠️</span>':''}
+            ${c.newbie?'<span class="card-tag tag-newbie" title="新人">🔰</span>':''}
           </div>
         </div>
       </div>`;
@@ -1861,7 +1866,7 @@ function closeModalOnOverlay(e){if(e.target===document.getElementById('formModal
 
 function clearForm(){
   ['fname','fage','fheight','fprice','fxAccount','fxFollowers','figAccount','figFollowers','fttAccount','fttFollowers','fagency','fnotes'].forEach(id=>document.getElementById(id).value='');
-  ['fmic','fservice','fleader','fdealer','fdrink','ftattoo'].forEach(id=>document.getElementById(id).checked=false);
+  ['fmic','fservice','fleader','fdealer','fdrink','ftattoo','fnewbie'].forEach(id=>document.getElementById(id).checked=false);
   const _aw=document.getElementById('aliasWrap');if(_aw)_aw.innerHTML='';
   }
 function fillForm(c){
@@ -1890,6 +1895,7 @@ function fillForm(c){
   const _fd=document.getElementById('fdealer');if(_fd)_fd.checked=!!c.dealer;
   const _fdr=document.getElementById('fdrink');if(_fdr)_fdr.checked=!!c.drink;
   const _ftt=document.getElementById('ftattoo');if(_ftt)_ftt.checked=!!c.tattoo;
+  const _fnb=document.getElementById('fnewbie');if(_fnb)_fnb.checked=!!c.newbie;
 }
 
 async function saveCompanion(){
@@ -1917,6 +1923,7 @@ async function saveCompanion(){
     dealer:document.getElementById('fdealer')?.checked||false,
     drink:document.getElementById('fdrink')?.checked||false,
     tattoo:document.getElementById('ftattoo')?.checked||false,
+    newbie:document.getElementById('fnewbie')?.checked||false,
     isNG:isNGForm,
     photos:[...currentPhotos],
     sortOrder:editingId?(companions.find(c=>c.id===editingId)?.sortOrder||0):companions.length,
@@ -2263,11 +2270,11 @@ function renderListTable(){
     oldTbody=tbl.querySelector('tbody')||tbl.appendChild(document.createElement('tbody'));
   }
 
-  const WC={unwanted:'#fff7ed',interval:'#fee2e2',skip:'#fdf4ff',long:'#fefce8'};
-  const WB={unwanted:'#fb923c',interval:'#fca5a5',skip:'#d8b4fe',long:'#fcd34d'};
-  const WT={unwanted:'#9a3412',interval:'#991b1b',skip:'#6b21a8',long:'#92400e'};
-  const WS={unwanted:'!',interval:'!!',skip:'↕',long:'⌛'};
-  const WM={unwanted:'希望外',interval:'インターバル8h未満',skip:'同日飛び枠',long:'長時間(13h+)'};
+  const WC={unwanted:'#fff7ed',interval:'#fee2e2',skip:'#fdf4ff',long:'#fefce8',c3:'#fefce8',c4:'#fff1f2',early:'#fff1f2'};
+  const WB={unwanted:'#fb923c',interval:'#fca5a5',skip:'#d8b4fe',long:'#fcd34d',c3:'#fcd34d',c4:'#fca5a5',early:'#fca5a5'};
+  const WT={unwanted:'#9a3412',interval:'#991b1b',skip:'#6b21a8',long:'#92400e',c3:'#854d0e',c4:'#991b1b',early:'#991b1b'};
+  const WS={unwanted:'!',interval:'!!',skip:'↕',long:'⌛',c3:'3連',c4:'4連+',early:'翌朝'};
+  const WM={unwanted:'希望外',interval:'インターバル8h未満',skip:'同日飛び枠',long:'長時間(13h+)',c3:'3枠連続',c4:'4枠以上連続',early:'前日深夜→早朝'};
 
   function absM(s,w){
     const t=s.time.match(/(\d+):(\d+)[~〜～](\d+):(\d+)/);if(!t)return 0;
@@ -2284,11 +2291,30 @@ function renderListTable(){
       if(ns.some((n,i)=>i>0&&n-ns[i-1]>1))return'skip';
     }
     if(daySl.length>=2){
-      if(absM(daySl[daySl.length-1],'end')-absM(daySl[0],'start')>=13*60)return'long';
+      if(absM(daySl[daySl.length-1],'end')-absM(daySl[0],'start')>=13*60){/* long: 非表示 */}
     }
     const allMy=shiftSlots.filter(ss=>(assigned[ss.code]||[]).includes(name));
     const idx=allMy.findIndex(ss=>ss.code===slot.code);
-    if(idx>0){const prev=allMy[idx-1];const gap=absM(slot,'start')-absM(prev,'end');if(gap>=0&&gap<8*60)return'interval';}
+    if(idx>0){const prev=allMy[idx-1];const gap=absM(slot,'start')-absM(prev,'end');if(gap>=0&&gap<8*60){/* interval: 非表示 */}}
+
+    // ── 連続枠チェック（同日の連続スロット数） ──
+    const daySlSorted=daySl.slice().sort((a,b)=>absM(a,'start')-absM(b,'start'));
+    const daySlotCount=daySlSorted.length;
+    if(daySlotCount>=4)return'c4';
+    if(daySlotCount===3)return'c3';
+
+    // ── 前日の深夜枠（22:30以降開始）→ 翌日の早朝/昼枠チェック ──
+    const myIdx=allMy.findIndex(ss=>ss.code===slot.code);
+    if(myIdx>0){
+      const prevSlot=allMy[myIdx-1];
+      if(prevSlot.date!==slot.date){
+        // 前のスロットが22:30以降開始かどうか（深夜勤務）
+        const prevStartH=parseInt((prevSlot.time.match(/(\d+):/)||['','0'])[1]);
+        const isLateNight=prevStartH>=22||(prevStartH>=0&&prevStartH<8);
+        if(isLateNight){return'early';}
+      }
+    }
+
     return'ok';
   }
 
@@ -2311,7 +2337,7 @@ function renderListTable(){
     const wishedActive=wished.filter(p=>!isNGByName(p.name));
     const wishedNG=wished.filter(p=>isNGByName(p.name));
     const cap=s.capacity;
-    const capColor=asgn.length>cap?'var(--red)':asgn.length>=cap?'#2B5BA8':asgn.length>0?'#ef4444':'var(--text-muted)';
+    const capColor=asgn.length>cap?'var(--green)':asgn.length>=cap?'#2B5BA8':asgn.length>0?'#ef4444':'var(--text-muted)';
     const ldrCands=asgn.filter(n=>isLeaderCapable(n));
     if(!slotLeaders[s.code]&&ldrCands.length>0)slotLeaders[s.code]=ldrCands[0];
     if(slotLeaders[s.code]&&!asgn.includes(slotLeaders[s.code]))slotLeaders[s.code]=ldrCands[0]||null;
@@ -2344,9 +2370,11 @@ function renderListTable(){
         chip.className='lchip'+(isLdr?' is-leader':'')+(isOver?' over-cap':'')+(isNG?' is-ng-chip':'');
         if(flag!=='ok'&&!isNG){chip.style.background=WC[flag];chip.style.borderColor=WB[flag];chip.style.color=WT[flag];}
         chip.draggable=true;chip.style.cursor='grab';
-        chip.title=n+(isLdr?' 👑':'')+( isDealer?' 🃏':'')+( isNG?' ⚠️NG':'')+( flag!=='ok'?(' ⚑'+WM[flag]):'')+'\nダブルクリックで削除';
+        chip.title=n+(isLdr?' 👑':'')+( isDealer?' 🃏':'')+( isNG?' ⚠️NG':'')+( flag!=='ok'?(' ⚑'+WM[flag]):'')+'\nダブルクリックで詳細表示';
+        const isNewbie=!!(comp&&comp.newbie);
         chip.innerHTML=
           (isNG?'<span style="font-size:11px;margin-right:3px;color:#dc2626;" title="NG">⚠️</span>':'')+
+          (isNewbie?'<span style="font-size:10px;margin-right:2px;" title="新人">🔰</span>':'')+
           (isLdr?'<span style="margin-right:2px">👑</span>':'')+
           `<span>${n}</span>`+
           (isDealer?'<span style="font-size:9px;margin-left:3px">🃏</span>':'')+
@@ -3314,6 +3342,7 @@ async function switchMode(mode){
       if(c.dealer) badges += '<span style="font-size:9px;background:rgba(52,211,153,0.9);color:#064e3b;border-radius:4px;padding:1px 5px;font-weight:700;">🃏</span>';
       if(c.drink) badges += '<span style="font-size:9px;background:rgba(96,165,250,0.9);color:#1e3a8a;border-radius:4px;padding:1px 5px;font-weight:700;">🍺</span>';
       if(c.tattoo) badges += '<span style="font-size:9px;background:rgba(252,165,165,0.95);color:#991b1b;border-radius:4px;padding:1px 5px;font-weight:700;">⚠️</span>';
+      if(c.newbie) badges += '<span style="font-size:9px;background:rgba(187,247,208,0.95);color:#166534;border-radius:4px;padding:1px 5px;font-weight:700;">🔰新人</span>';
       // data-idをエスケープして確実に渡す
       var safeId = String(c.id).replace(/"/g,'&quot;');
       html += '<div class="mob-comp-card" data-id="'+safeId+'" style="border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(43,91,168,0.12);background:#fff;cursor:pointer;">';
