@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.3.5-debug // 統合管理システム</title>
+<title>COMP v2.3.6-debug // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -2581,28 +2581,26 @@ async function handleFormCSVText(text){
     const wishes=new Set();
     shiftColIdxs.forEach(i=>{
       const cell=(row[i]||'').trim();if(!cell)return;
-      // 列ヘッダーから日付を取得
       const colHeader=(header[i]||'').replace(/[\r\n\uFEFF\u3000]/g,' ').trim();
       const dateMatch=colHeader.match(/(\d+\/\d+)/);
       if(!dateMatch)return;
-      const colDate=dateMatch[1]; // 例: "4/25"
-      // セル内の時間帯を正規化（全角→半角、〜→~、全角数字→半角）
+      const colDate=dateMatch[1];
       const normalizedCell=cell
         .replace(/[～〜∼]/g,'~')
         .replace(/[\uff10-\uff19]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0))
         .replace(/[\uff01-\uff5e]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0))
         .replace(/：/g,':');
-      // 対象イベントのスロットから日付と時間帯が一致するものを探す（時間帯優先）
+      // カンマ区切りで分割して各エントリの「開始時刻」を抽出
+      const entryStarts=normalizedCell.split(',').map(e=>{
+        const m=e.match(/(\d{1,2}:\d{2})/);
+        return m?m[1]:null;
+      }).filter(Boolean);
       const slots=targetEvent?targetEvent.slots||[]:[];
       slots.forEach(s=>{
         const slotDate=s.date.replace(/\(.*\)/,'').trim();
         if(slotDate!==colDate)return;
-        const slotTime=s.time.replace(/[～〜∼]/g,'~');
-        // 開始時刻が含まれているかで判定（例: "22:30" が含まれればB3）
-        const startTime=slotTime.split('~')[0];
-        if(normalizedCell.includes(startTime)){
-          wishes.add(s.code);
-        }
+        const startTime=s.time.split('~')[0];
+        if(entryStarts.includes(startTime)) wishes.add(s.code);
       });
     });
     const hairVal=(hairIdx>=0?(row[hairIdx]||'').trim():'');
