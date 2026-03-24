@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.2.9 // 統合管理システム</title>
+<title>COMP v2.3.4-debug // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -668,7 +668,7 @@ header{
 .hm-pool-item:hover{border-color:var(--orange);}
 .hm-pool-item.dragging{opacity:.4;}
 .hm-pool-item.drag-over{border-color:var(--orange);background:#ffedd5;}
-.pool-ng{background:#fff5f5 !important;border-left:3px solid #fca5a5 !important;}
+.pool-ng{background:#fff5f5 !important;border-left:3px solid #fca5a5 !important;cursor:grab;}
 .pool-ng .pool-name{color:#b91c1c !important;}
 .hm-pool-drop{min-height:36px;border:1.5px dashed #fed7aa;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:10px;transition:.12s;}
 .hm-pool-drop.drag-over{border-color:var(--orange);background:#fff7ed;}
@@ -1381,7 +1381,7 @@ header{
 
 const SUPABASE_URL='https://zbtfhxfimmvqzwhmqmoj.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpidGZoeGZpbW12cXp3aG1xbW9qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3ODQ2NTIsImV4cCI6MjA4ODM2MDY1Mn0.X7b5QWO-NZdxwxaF_dVkMDpf6XDNea0MGiZdjsUiB9I';
-const APP_VERSION='2.2.9';
+const APP_VERSION='2.3.2-debug';
 const APP_UPDATED='2026-03-10';
 const {createClient}=supabase;
 let db=createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -2298,8 +2298,8 @@ function renderListTable(){
     const asgn=assigned[s.code]||[];
     const wished=shiftPeople.filter(p=>(Array.isArray(p.wishes)?p.wishes:[]).includes(s.code)&&!asgn.includes(p.name));
     // NGの人を仕分け
-    const wishedActive=wished.filter(p=>{ const c=companions.find(cc=>cc.name===p.name); return !(c&&c.isNG); });
-    const wishedNG=wished.filter(p=>{ const c=companions.find(cc=>cc.name===p.name); return !!(c&&c.isNG); });
+    const wishedActive=wished.filter(p=>!isNGByName(p.name));
+    const wishedNG=wished.filter(p=>isNGByName(p.name));
     const cap=s.capacity;
     const capColor=asgn.length>cap?'var(--red)':asgn.length>=cap?'var(--orange)':asgn.length>0?'var(--green)':'var(--text-muted)';
     const ldrCands=asgn.filter(n=>isLeaderCapable(n));
@@ -2329,7 +2329,7 @@ function renderListTable(){
     else{
       asgn.forEach((n,i)=>{
         const comp=companions.find(c=>c.name===n);
-        const isLdr=curLdr===n,isOver=i>=cap,flag=getFlag(n,s),isDealer=!!(comp&&comp.dealer),isNG=!!(comp&&comp.isNG);
+        const isLdr=curLdr===n,isOver=i>=cap,flag=getFlag(n,s),isDealer=!!(comp&&comp.dealer),isNG=isNGByName(n);
         const chip=document.createElement('span');
         chip.className='lchip'+(isLdr?' is-leader':'')+(isOver?' over-cap':'')+(isNG?' is-ng-chip':'');
         if(flag!=='ok'&&!isNG){chip.style.background=WC[flag];chip.style.borderColor=WB[flag];chip.style.color=WT[flag];}
@@ -2355,13 +2355,16 @@ function renderListTable(){
     const wishedToShow = wishedActive||wished;
     if(!wishedToShow.length&&!(wishedNG&&wishedNG.length)){wDiv.innerHTML='<span style="color:var(--text-muted);font-size:11px">—</span>';}
     else{
-      // NGの人はクリック不可で表示
+      // NGの人は警告付きでD&D・クリック可能
       (wishedNG||[]).forEach(p=>{
         const chip=document.createElement('span');
         chip.className='wchip';
-        chip.style.cssText='background:#fff5f5;border-color:#fca5a5;color:#dc2626;cursor:not-allowed;opacity:0.75;';
-        chip.title=p.name+' はNG';
-        chip.innerHTML='<span style="font-size:10px;margin-right:1px;">⚠️</span>'+p.name;
+        chip.style.cssText='background:#fff5f5;border-color:#fca5a5;color:#dc2626;cursor:grab;opacity:0.85;';
+        chip.title=p.name+' はNG（強制追加可）';
+        chip.draggable=true;
+        chip.innerHTML='<span style="font-size:10px;margin-right:1px;">⚠️</span>＋'+p.name;
+        chip.addEventListener('click',()=>addToSlot(s.code,p.name));
+        chip.addEventListener('dragstart',e=>{e.stopPropagation();e.dataTransfer.setData('text/plain',p.name);e.dataTransfer.effectAllowed='copy';});
         wDiv.appendChild(chip);
       });
       wishedToShow.forEach(p=>{
@@ -2398,10 +2401,19 @@ function renderListTable(){
 function renderGridTable(){} // 非表示
 
 // ── スロット操作 ──
+// NG判定ヘルパー（本名・別名どちらでもNG判定）
+function isNGByName(name){
+  const nl=name.toLowerCase();
+  const comp=companions.find(c=>
+    c.name.toLowerCase()===nl||
+    (c.aliases||[]).some(a=>a.trim().toLowerCase()===nl)
+  );
+  return !!(comp&&comp.isNG);
+}
+
 function addToSlot(code,name){
-  // NGの人は追加不可
-  const comp=companions.find(c=>c.name===name);
-  if(comp&&comp.isNG){showToast(name+' はNGのため追加できません','error');return;}
+  // NGの人は警告を出すが追加は許可
+  if(isNGByName(name)){showToast('⚠️ '+name+' はNGです（強制追加）','warning');}
   const ev=currentEvent();
   if(!ev.assigned[code])ev.assigned[code]=[];
   if(!ev.assigned[code].includes(name))ev.assigned[code].push(name);
@@ -2457,8 +2469,7 @@ function renderPool(){
   list.innerHTML=people.map(p=>{
     const isA=allA.has(p.name);
     const ws=Array.isArray(p.wishes)?p.wishes:[];
-    const comp=companions.find(function(c){ return c.name===p.name; });
-    const isNG=!!(comp&&comp.isNG);
+    const isNG=isNGByName(p.name);
     const ngBadge=isNG?'<span style="color:#dc2626;font-size:10px;margin-right:2px;">⚠️</span>':'';
     return`<div class="pool-person${isA?' pool-assigned':''}${isNG?' pool-ng':''}" draggable="true"
       ondragstart="event.dataTransfer.setData('text/plain','${p.name.replace(/'/g,"\'")}');event.dataTransfer.effectAllowed='copy';"
@@ -2476,9 +2487,8 @@ function autoAssign(){
   const ev=currentEvent();
   ev.slots.forEach(s=>{ev.assigned[s.code]=[];ev.leaders[s.code]=null;});
   ev.people.forEach(p=>{
-    // NGの人はスキップ
-    const comp=companions.find(c=>c.name===p.name);
-    if(comp&&comp.isNG)return;
+    // NGの人はスキップ（別名でも判定）
+    if(isNGByName(p.name))return;
     (Array.isArray(p.wishes)?p.wishes:[]).forEach(code=>{
       if(!ev.assigned[code])ev.assigned[code]=[];
       if(!ev.assigned[code].includes(p.name))ev.assigned[code].push(p.name);
@@ -2561,8 +2571,29 @@ async function handleFormCSVText(text){
     const wishes=new Set();
     shiftColIdxs.forEach(i=>{
       const cell=(row[i]||'').trim();if(!cell)return;
-      const codes=cell.match(/[A-Z]\d+/g)||[];
-      codes.forEach(c=>wishes.add(c));
+      // 列ヘッダーから日付を取得
+      const colHeader=(header[i]||'').replace(/[\r\n\uFEFF\u3000]/g,' ').trim();
+      const dateMatch=colHeader.match(/(\d+\/\d+)/);
+      if(!dateMatch)return;
+      const colDate=dateMatch[1]; // 例: "4/25"
+      // セル内の時間帯を正規化（全角→半角、〜→~、全角数字→半角）
+      const normalizedCell=cell
+        .replace(/[～〜∼]/g,'~')
+        .replace(/[\uff10-\uff19]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0))
+        .replace(/[\uff01-\uff5e]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0))
+        .replace(/：/g,':');
+      // 対象イベントのスロットから日付と時間帯が一致するものを探す（時間帯優先）
+      const slots=targetEvent?targetEvent.slots||[]:[];
+      slots.forEach(s=>{
+        const slotDate=s.date.replace(/\(.*\)/,'').trim();
+        if(slotDate!==colDate)return;
+        const slotTime=s.time.replace(/[～〜∼]/g,'~');
+        // 開始時刻が含まれているかで判定（例: "22:30" が含まれればB3）
+        const startTime=slotTime.split('~')[0];
+        if(normalizedCell.includes(startTime)){
+          wishes.add(s.code);
+        }
+      });
     });
     const hairVal=(hairIdx>=0?(row[hairIdx]||'').trim():'');
     const hairMakeWish=hairVal==='有';
