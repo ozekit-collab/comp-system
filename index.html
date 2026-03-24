@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.2.5 // 統合管理システム</title>
+<title>COMP v2.2.9 // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -668,6 +668,8 @@ header{
 .hm-pool-item:hover{border-color:var(--orange);}
 .hm-pool-item.dragging{opacity:.4;}
 .hm-pool-item.drag-over{border-color:var(--orange);background:#ffedd5;}
+.pool-ng{background:#fff5f5 !important;border-left:3px solid #fca5a5 !important;}
+.pool-ng .pool-name{color:#b91c1c !important;}
 .hm-pool-drop{min-height:36px;border:1.5px dashed #fed7aa;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:10px;transition:.12s;}
 .hm-pool-drop.drag-over{border-color:var(--orange);background:#fff7ed;}
 
@@ -1379,7 +1381,7 @@ header{
 
 const SUPABASE_URL='https://zbtfhxfimmvqzwhmqmoj.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpidGZoeGZpbW12cXp3aG1xbW9qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3ODQ2NTIsImV4cCI6MjA4ODM2MDY1Mn0.X7b5QWO-NZdxwxaF_dVkMDpf6XDNea0MGiZdjsUiB9I';
-const APP_VERSION='2.2.5';
+const APP_VERSION='2.2.9';
 const APP_UPDATED='2026-03-10';
 const {createClient}=supabase;
 let db=createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -2295,6 +2297,9 @@ function renderListTable(){
     const tr=document.createElement('tr');
     const asgn=assigned[s.code]||[];
     const wished=shiftPeople.filter(p=>(Array.isArray(p.wishes)?p.wishes:[]).includes(s.code)&&!asgn.includes(p.name));
+    // NGの人を仕分け
+    const wishedActive=wished.filter(p=>{ const c=companions.find(cc=>cc.name===p.name); return !(c&&c.isNG); });
+    const wishedNG=wished.filter(p=>{ const c=companions.find(cc=>cc.name===p.name); return !!(c&&c.isNG); });
     const cap=s.capacity;
     const capColor=asgn.length>cap?'var(--red)':asgn.length>=cap?'var(--orange)':asgn.length>0?'var(--green)':'var(--text-muted)';
     const ldrCands=asgn.filter(n=>isLeaderCapable(n));
@@ -2324,14 +2329,14 @@ function renderListTable(){
     else{
       asgn.forEach((n,i)=>{
         const comp=companions.find(c=>c.name===n);
-        const isLdr=curLdr===n,isOver=i>=cap,flag=getFlag(n,s),isDealer=!!comp?.dealer,isNG=!!comp?.isNG;
+        const isLdr=curLdr===n,isOver=i>=cap,flag=getFlag(n,s),isDealer=!!(comp&&comp.dealer),isNG=!!(comp&&comp.isNG);
         const chip=document.createElement('span');
         chip.className='lchip'+(isLdr?' is-leader':'')+(isOver?' over-cap':'')+(isNG?' is-ng-chip':'');
-        if(flag!=='ok'){chip.style.background=WC[flag];chip.style.borderColor=WB[flag];chip.style.color=WT[flag];}
+        if(flag!=='ok'&&!isNG){chip.style.background=WC[flag];chip.style.borderColor=WB[flag];chip.style.color=WT[flag];}
         chip.draggable=true;chip.style.cursor='grab';
         chip.title=n+(isLdr?' 👑':'')+( isDealer?' 🃏':'')+( isNG?' ⚠️NG':'')+( flag!=='ok'?(' ⚑'+WM[flag]):'')+'\nダブルクリックで削除';
         chip.innerHTML=
-          (isNG?'<span style="font-size:10px;margin-right:2px;" title="NG">⚠️</span>':'')+
+          (isNG?'<span style="font-size:11px;margin-right:3px;color:#dc2626;" title="NG">⚠️</span>':'')+
           (isLdr?'<span style="margin-right:2px">👑</span>':'')+
           `<span>${n}</span>`+
           (isDealer?'<span style="font-size:9px;margin-left:3px">🃏</span>':'')+
@@ -2347,9 +2352,19 @@ function renderListTable(){
     // 希望者チップ（クリック or D&D で追加）
     const tdW=document.createElement('td');
     const wDiv=document.createElement('div');wDiv.className='list-wish-row';
-    if(!wished.length){wDiv.innerHTML='<span style="color:var(--text-muted);font-size:11px">—</span>';}
+    const wishedToShow = wishedActive||wished;
+    if(!wishedToShow.length&&!(wishedNG&&wishedNG.length)){wDiv.innerHTML='<span style="color:var(--text-muted);font-size:11px">—</span>';}
     else{
-      wished.forEach(p=>{
+      // NGの人はクリック不可で表示
+      (wishedNG||[]).forEach(p=>{
+        const chip=document.createElement('span');
+        chip.className='wchip';
+        chip.style.cssText='background:#fff5f5;border-color:#fca5a5;color:#dc2626;cursor:not-allowed;opacity:0.75;';
+        chip.title=p.name+' はNG';
+        chip.innerHTML='<span style="font-size:10px;margin-right:1px;">⚠️</span>'+p.name;
+        wDiv.appendChild(chip);
+      });
+      wishedToShow.forEach(p=>{
         const chip=document.createElement('span');
         chip.className='wchip';chip.textContent='＋'+p.name;chip.draggable=true;
         chip.addEventListener('click',()=>addToSlot(s.code,p.name));
@@ -2384,6 +2399,9 @@ function renderGridTable(){} // 非表示
 
 // ── スロット操作 ──
 function addToSlot(code,name){
+  // NGの人は追加不可
+  const comp=companions.find(c=>c.name===name);
+  if(comp&&comp.isNG){showToast(name+' はNGのため追加できません','error');return;}
   const ev=currentEvent();
   if(!ev.assigned[code])ev.assigned[code]=[];
   if(!ev.assigned[code].includes(name))ev.assigned[code].push(name);
@@ -2439,10 +2457,13 @@ function renderPool(){
   list.innerHTML=people.map(p=>{
     const isA=allA.has(p.name);
     const ws=Array.isArray(p.wishes)?p.wishes:[];
-    return`<div class="pool-person${isA?' pool-assigned':''}" draggable="true"
-      ondragstart="event.dataTransfer.setData('text/plain','${p.name.replace(/'/g,"\\'")}');event.dataTransfer.effectAllowed='copy';"
-      onclick="showPersonShiftModal('${p.name.replace(/'/g,"\\'")}')">
-      <span class="pool-name">${p.name}</span>
+    const comp=companions.find(function(c){ return c.name===p.name; });
+    const isNG=!!(comp&&comp.isNG);
+    const ngBadge=isNG?'<span style="color:#dc2626;font-size:10px;margin-right:2px;">⚠️</span>':'';
+    return`<div class="pool-person${isA?' pool-assigned':''}${isNG?' pool-ng':''}" draggable="true"
+      ondragstart="event.dataTransfer.setData('text/plain','${p.name.replace(/'/g,"\'")}');event.dataTransfer.effectAllowed='copy';"
+      onclick="showPersonShiftModal('${p.name.replace(/'/g,"\'")}')">
+      <span class="pool-name">${ngBadge}${p.name}</span>
       <span class="pool-wishes">${ws.join(' ')}</span>
     </div>`;
   }).join('');
@@ -2455,6 +2476,9 @@ function autoAssign(){
   const ev=currentEvent();
   ev.slots.forEach(s=>{ev.assigned[s.code]=[];ev.leaders[s.code]=null;});
   ev.people.forEach(p=>{
+    // NGの人はスキップ
+    const comp=companions.find(c=>c.name===p.name);
+    if(comp&&comp.isNG)return;
     (Array.isArray(p.wishes)?p.wishes:[]).forEach(code=>{
       if(!ev.assigned[code])ev.assigned[code]=[];
       if(!ev.assigned[code].includes(p.name))ev.assigned[code].push(p.name);
