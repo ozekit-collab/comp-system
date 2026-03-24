@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.4.6 // 統合管理システム</title>
+<title>COMP v2.4.8 // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -2123,7 +2123,7 @@ function updateSyncBadge(state, dateStr){
 function saveAllEventsToStorage(){
   try{
     const data={};
-    shiftEvents.forEach(ev=>{data[ev.id]={people:ev.people||[],assigned:ev.assigned||{},leaders:ev.leaders||{},hairMake:ev.hairMake||{},hairMakePool:ev.hairMakePool||[]};});
+    shiftEvents.forEach(ev=>{data[ev.id]={people:ev.people||[],assigned:ev.assigned||{},leaders:ev.leaders||{},hairMake:ev.hairMake||{},hairMakePool:ev.hairMakePool||[],manualAssigned:ev.manualAssigned||{}};});
     localStorage.setItem('shift_data_v2',JSON.stringify(data));
     localStorage.setItem('shift_current_event_v2',currentEventId);
     localStorage.setItem('shift_slot_version','v_17_50');
@@ -2181,7 +2181,7 @@ function loadShiftFromStorage(){
           a[s.code]=(d.assigned||{})[s.code]||[];
           l[s.code]=(d.leaders||{})[s.code]??null;
         });
-        return{...ev,people:d.people||[],assigned:a,leaders:l,hairMake:d.hairMake||{},hairMakePool:d.hairMakePool||[]};
+        return{...ev,people:d.people||[],assigned:a,leaders:l,hairMake:d.hairMake||{},hairMakePool:d.hairMakePool||[],manualAssigned:d.manualAssigned||{}};
       });
     }
     if(evId&&shiftEvents.find(e=>e.id===evId))currentEventId=evId;
@@ -2313,10 +2313,11 @@ function renderListTable(){
         const prevStartH=parseInt((prevSlot.time.match(/(\d+):/)||['','0'])[1]);
         const isLateNight=prevStartH>=22||(prevStartH>=0&&prevStartH<8);
         if(isLateNight){
-          // 「直前日」かどうか確認（1日以内の差のみ対象）
+          // 「直前日」かつ「翌日スロットが早朝〜昼（12時以前）」のみ対象
           const toDay=d=>{const m=d.match(/(\d+)\/(\d+)/);return m?parseInt(m[1])*31+parseInt(m[2]):0;};
           const dayDiff=toDay(slot.date)-toDay(prevSlot.date);
-          if(dayDiff>=0&&dayDiff<=2){return'early';}
+          const thisStartH=parseInt((slot.time.match(/(\d+):/)||['','13'])[1]);
+          if(dayDiff>=0&&dayDiff<=2&&thisStartH<13){return'early';}
         }
       }
     }
@@ -2461,12 +2462,18 @@ function addToSlot(code,name){
   const ev=currentEvent();
   if(!ev.assigned[code])ev.assigned[code]=[];
   if(!ev.assigned[code].includes(name))ev.assigned[code].push(name);
+  // 手動追加フラグを記録（CSVインポート時に保護される）
+  if(!ev.manualAssigned)ev.manualAssigned={};
+  if(!ev.manualAssigned[code])ev.manualAssigned[code]=[];
+  if(!ev.manualAssigned[code].includes(name))ev.manualAssigned[code].push(name);
   saveCurrentEventData();renderShiftEdit();renderShiftStats();saveAllEventsToStorage();
 }
 function removeFromSlot(code,name){
   const ev=currentEvent();
   if(ev.assigned[code])ev.assigned[code]=ev.assigned[code].filter(n=>n!==name);
   if(ev.leaders[code]===name)ev.leaders[code]=null;
+  // 手動追加フラグからも削除
+  if(ev.manualAssigned&&ev.manualAssigned[code])ev.manualAssigned[code]=ev.manualAssigned[code].filter(n=>n!==name);
   // ヘアメ枠からも連動削除
   if(!ev.hairMake)ev.hairMake={};
   Object.keys(ev.hairMake).forEach(key=>{
@@ -2682,11 +2689,25 @@ async function handleFormCSVText(text){
   });
 
   // 既存の配置から有効なものだけ引き継ぐ
+  const prevManual = targetEvent.manualAssigned || {};
+  const newManual = {};
+  (targetEvent.slots||[]).forEach(s=>{ newManual[s.code] = []; });
+
   Object.entries(prevAssigned).forEach(([code, names])=>{
     if(!newAssigned[code]) return;
     names.forEach(name=>{
-      // CSVから消えた人・希望変更した人は除外
-      if(removedNames.has(name) || resetNames.has(name)) return;
+      // CSVから消えた人は除外（手動配置でも削除）
+      if(removedNames.has(name)) return;
+      // 手動で入れた人は希望変更に関わらず維持
+      const isManual = (prevManual[code]||[]).includes(name);
+      if(isManual){
+        newAssigned[code].push(name);
+        if(!newManual[code])newManual[code]=[];
+        newManual[code].push(name);
+        return;
+      }
+      // 希望変更した人は除外
+      if(resetNames.has(name)) return;
       // 新CSVに存在する人のみ引き継ぎ
       if(people.find(p=>p.name===name)){
         newAssigned[code].push(name);
@@ -2709,6 +2730,7 @@ async function handleFormCSVText(text){
   targetEvent.people = people;
   targetEvent.assigned = newAssigned;
   targetEvent.leaders = newLeaders;
+  targetEvent.manualAssigned = newManual||{};
 
   // トースト通知
   const resetCount = resetNames.size;
