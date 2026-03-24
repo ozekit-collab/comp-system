@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.3.6-debug // 統合管理システム</title>
+<title>COMP v2.3.8-debug // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -2070,7 +2070,7 @@ const DEFAULT_EVENTS=[
     {code:"J1",date:"5/3(日)",time:"10:00~16:30",capacity:12},{code:"J2",date:"5/3(日)",time:"16:00~22:30",capacity:12},{code:"J3",date:"5/3(日)",time:"22:30~5:00",capacity:12},{code:"J4",date:"5/3(日)",time:"5:00~9:00",capacity:5},
     {code:"K1",date:"5/4(月)",time:"10:00~16:30",capacity:12},{code:"K2",date:"5/4(月)",time:"16:00~22:30",capacity:12},{code:"K3",date:"5/4(月)",time:"22:30~5:00",capacity:12},{code:"K4",date:"5/4(月)",time:"5:00~9:00",capacity:5},
     {code:"L1",date:"5/5(火)",time:"10:00~16:30",capacity:12},{code:"L2",date:"5/5(火)",time:"16:00~22:30",capacity:12},{code:"L3",date:"5/5(火)",time:"22:30~5:00",capacity:12},{code:"L4",date:"5/5(火)",time:"5:00~9:00",capacity:5},
-    {code:"M1",date:"5/6(水)",time:"9:00~16:30",capacity:12},{code:"M2",date:"5/6(水)",time:"16:00~22:30",capacity:12},
+    {code:"M1",date:"5/6(水)",time:"10:00~16:30",capacity:12},{code:"M2",date:"5/6(水)",time:"16:00~22:30",capacity:12},
   ],people:[],assigned:{},leaders:{}},
 ];
 
@@ -2311,7 +2311,7 @@ function renderListTable(){
     const wishedActive=wished.filter(p=>!isNGByName(p.name));
     const wishedNG=wished.filter(p=>isNGByName(p.name));
     const cap=s.capacity;
-    const capColor=asgn.length>cap?'var(--red)':asgn.length>=cap?'var(--orange)':asgn.length>0?'var(--green)':'var(--text-muted)';
+    const capColor=asgn.length>cap?'var(--red)':asgn.length>=cap?'#2B5BA8':asgn.length>0?'#ef4444':'var(--text-muted)';
     const ldrCands=asgn.filter(n=>isLeaderCapable(n));
     if(!slotLeaders[s.code]&&ldrCands.length>0)slotLeaders[s.code]=ldrCands[0];
     if(slotLeaders[s.code]&&!asgn.includes(slotLeaders[s.code]))slotLeaders[s.code]=ldrCands[0]||null;
@@ -2353,7 +2353,7 @@ function renderListTable(){
           (flag!=='ok'?`<span style="font-size:8px;font-weight:900;background:rgba(0,0,0,.12);border-radius:3px;padding:0 2px;margin-left:3px">${WS[flag]}</span>`:'');
         chip.addEventListener('dragstart',e=>{e.stopPropagation();e.dataTransfer.setData('text/plain','REMOVE:'+s.code+':'+n);e.dataTransfer.effectAllowed='move';chip.style.opacity='0.4';});
         chip.addEventListener('dragend',()=>{chip.style.opacity='';});
-        chip.addEventListener('dblclick',e=>{e.stopPropagation();removeFromSlot(s.code,n);});
+        chip.addEventListener('dblclick',e=>{e.stopPropagation();openDetail(companions.find(c=>c.name===n)?.id);});
         mDiv.appendChild(chip);
       });
     }
