@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.2.3 // 統合管理システム</title>
+<title>COMP v2.2.4 // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -1377,7 +1377,7 @@ header{
 
 const SUPABASE_URL='https://zbtfhxfimmvqzwhmqmoj.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpidGZoeGZpbW12cXp3aG1xbW9qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3ODQ2NTIsImV4cCI6MjA4ODM2MDY1Mn0.X7b5QWO-NZdxwxaF_dVkMDpf6XDNea0MGiZdjsUiB9I';
-const APP_VERSION='2.2.3';
+const APP_VERSION='2.2.4';
 const APP_UPDATED='2026-03-10';
 const {createClient}=supabase;
 let db=createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -2546,17 +2546,82 @@ async function handleFormCSVText(text){
 
   // 現在のイベントデータを保存してからターゲットイベントに切替
   saveCurrentEventData();
-  // ターゲットイベントに人員データを直接書き込む
-  targetEvent.people=people;
-  (targetEvent.slots||[]).forEach(s=>{
-    if(!targetEvent.assigned[s.code])targetEvent.assigned[s.code]=[];
-    if(!(s.code in targetEvent.leaders))targetEvent.leaders[s.code]=null;
+
+  // ── 差分インポート処理 ──
+  // 希望スロットが変わった人だけ配置をリセット、変わってない人は維持
+  const prevPeople = targetEvent.people || [];
+  const prevAssigned = targetEvent.assigned || {};
+
+  // 新しいassignedを構築
+  const newAssigned = {};
+  (targetEvent.slots||[]).forEach(s=>{ newAssigned[s.code] = []; });
+
+  // 新CSVに存在する人 → 希望変化をチェック
+  const resetNames = new Set(); // 配置をリセットする人
+  const removedNames = new Set(); // CSVから消えた人
+
+  // CSVから消えた人を特定
+  prevPeople.forEach(prev=>{
+    if(!people.find(p=>p.name===prev.name)) removedNames.add(prev.name);
   });
+
+  // 希望スロットが変わった人を特定
+  people.forEach(newP=>{
+    const prevP = prevPeople.find(p=>p.name===newP.name);
+    if(!prevP){
+      // 新規追加 → 配置なし（通常通り）
+      return;
+    }
+    // 希望スロットを比較
+    const prevWishes = new Set(prevP.wishes||[]);
+    const newWishes = new Set(newP.wishes||[]);
+    const changed = prevWishes.size !== newWishes.size ||
+      [...newWishes].some(w=>!prevWishes.has(w)) ||
+      [...prevWishes].some(w=>!newWishes.has(w));
+    if(changed) resetNames.add(newP.name);
+  });
+
+  // 既存の配置から有効なものだけ引き継ぐ
+  Object.entries(prevAssigned).forEach(([code, names])=>{
+    if(!newAssigned[code]) return;
+    names.forEach(name=>{
+      // CSVから消えた人・希望変更した人は除外
+      if(removedNames.has(name) || resetNames.has(name)) return;
+      // 新CSVに存在する人のみ引き継ぎ
+      if(people.find(p=>p.name===name)){
+        newAssigned[code].push(name);
+      }
+    });
+  });
+
+  // リーダー情報も同様に引き継ぎ（除外対象でない場合のみ）
+  const newLeaders = {};
+  (targetEvent.slots||[]).forEach(s=>{
+    const prevLdr = (targetEvent.leaders||{})[s.code];
+    if(prevLdr && !removedNames.has(prevLdr) && !resetNames.has(prevLdr)){
+      newLeaders[s.code] = prevLdr;
+    } else {
+      newLeaders[s.code] = null;
+    }
+  });
+
+  // 結果をターゲットイベントに反映
+  targetEvent.people = people;
+  targetEvent.assigned = newAssigned;
+  targetEvent.leaders = newLeaders;
+
+  // トースト通知
+  const resetCount = resetNames.size;
+  const removeCount = removedNames.size;
+  const msgs = [];
+  if(resetCount) msgs.push(`${resetCount}名の配置リセット`);
+  if(removeCount) msgs.push(`${removeCount}名を削除`);
   // イベントIDを切替してグローバル同期
   currentEventId=targetEvent.id;
   syncGlobals();
   saveAllEventsToStorage();
-  showToast(`✓ ${people.length}名 → ${targetEvent.name} にインポート完了`,'success');
+  const detail = msgs.length ? ` (${msgs.join('・')})` : ' (配置を維持)';
+  showToast(`✓ ${people.length}名 → ${targetEvent.name} にインポート完了${detail}`,'success');
   syncHairMake();
   switchShiftTab('edit');
   renderShiftStats();renderShiftPeople();
