@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.4.5 // 統合管理システム</title>
+<title>COMP v2.4.6 // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -1389,8 +1389,9 @@ header{
 
 const SUPABASE_URL='https://zbtfhxfimmvqzwhmqmoj.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpidGZoeGZpbW12cXp3aG1xbW9qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3ODQ2NTIsImV4cCI6MjA4ODM2MDY1Mn0.X7b5QWO-NZdxwxaF_dVkMDpf6XDNea0MGiZdjsUiB9I';
-const APP_VERSION='2.3.2-debug';
-const APP_UPDATED='2026-03-10';
+// バージョンをtitleタグから自動取得（手動更新不要）
+const APP_VERSION=(()=>{const m=document.title.match(/v?([\d.]+(?:-\w+)?)/);return m?m[1]:'?';})();
+const APP_UPDATED=(()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');})();
 const {createClient}=supabase;
 let db=createClient(SUPABASE_URL,SUPABASE_KEY);
 
@@ -2303,7 +2304,7 @@ function renderListTable(){
     if(daySlotCount>=4)return'c4';
     if(daySlotCount===3)return'c3';
 
-    // ── 前日の深夜枠（22:30以降開始）→ 翌日の早朝/昼枠チェック ──
+    // ── 前日の深夜枠（22:30以降開始）→ 翌日の早朝/昼枠チェック（直前日のみ）──
     const myIdx=allMy.findIndex(ss=>ss.code===slot.code);
     if(myIdx>0){
       const prevSlot=allMy[myIdx-1];
@@ -2311,7 +2312,12 @@ function renderListTable(){
         // 前のスロットが22:30以降開始かどうか（深夜勤務）
         const prevStartH=parseInt((prevSlot.time.match(/(\d+):/)||['','0'])[1]);
         const isLateNight=prevStartH>=22||(prevStartH>=0&&prevStartH<8);
-        if(isLateNight){return'early';}
+        if(isLateNight){
+          // 「直前日」かどうか確認（1日以内の差のみ対象）
+          const toDay=d=>{const m=d.match(/(\d+)\/(\d+)/);return m?parseInt(m[1])*31+parseInt(m[2]):0;};
+          const dayDiff=toDay(slot.date)-toDay(prevSlot.date);
+          if(dayDiff>=0&&dayDiff<=2){return'early';}
+        }
       }
     }
 
