@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.2.1 // 統合管理システム</title>
+<title>COMP v2.2.2 // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -976,6 +976,8 @@ header{
 #mob .wc{background:rgba(220,232,248,0.85);border:1px solid rgba(43,91,168,0.15);border-radius:10px;padding:7px 13px;font-size:12px;font-weight:600;color:var(--jopt);cursor:pointer;-webkit-tap-highlight-color:transparent;}
 #mob .wc:active{background:rgba(43,91,168,0.2);}
 #mob .empty{padding:20px;text-align:center;font-size:12px;color:rgba(43,91,168,0.35);}
+#mob .mob-comp-card{border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(43,91,168,0.1);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform 0.1s;}
+#mob .mob-comp-card:active{transform:scale(0.97);}
 
 /* 削除確認トースト */
 #mob-toast{
@@ -1375,7 +1377,7 @@ header{
 
 const SUPABASE_URL='https://zbtfhxfimmvqzwhmqmoj.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpidGZoeGZpbW12cXp3aG1xbW9qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3ODQ2NTIsImV4cCI6MjA4ODM2MDY1Mn0.X7b5QWO-NZdxwxaF_dVkMDpf6XDNea0MGiZdjsUiB9I';
-const APP_VERSION='2.2.1';
+const APP_VERSION='2.2.2';
 const APP_UPDATED='2026-03-10';
 const {createClient}=supabase;
 let db=createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -3122,12 +3124,25 @@ async function switchMode(mode){
     var info = document.getElementById('mob-info');
     if(info) info.textContent = companions.length + '名登録';
     body.scrollTop = 0;
-    if(state.screen==='comp'){ body.innerHTML = renderComp(); }
+    if(state.screen==='comp'){ body.innerHTML = renderComp(); bindCompEvents(); }
     else if(state.screen==='shift'){ body.innerHTML = renderShiftHome(); bindHomeEvents(); }
     else if(state.screen==='days'){ body.innerHTML = renderDays(); bindDayEvents(); }
     else if(state.screen==='slot'){ body.innerHTML = renderSlot(); bindSlotEvents(); attachSwipeListener(); }
     else if(state.screen==='summary') body.innerHTML = renderSummary();
     else if(state.screen==='hair') body.innerHTML = renderHair();
+  }
+
+  function bindCompEvents(){
+    document.querySelectorAll('#mob-body .mob-comp-card').forEach(function(card){
+      card.addEventListener('click', function(){
+        var id = card.dataset.id;
+        if(!id) return;
+        // PC版の詳細パネルを開く（z-indexを調整してスマホでも表示）
+        var overlay = document.getElementById('detailOverlay');
+        if(overlay) overlay.style.zIndex = '99998';
+        if(typeof openDetail === 'function') openDetail(id);
+      });
+    });
   }
 
   function bindHomeEvents(){
@@ -3145,21 +3160,37 @@ async function switchMode(mode){
 
   // ── コンパニオン一覧 ──
   function renderComp(){
-    var html = '<div class="hero"><div class="hero-title">コンパニオン一覧</div><div class="hero-sub">'+companions.length+'名登録</div></div>';
-    html += '<div style="padding:10px 12px 6px;display:flex;gap:8px;">';
-    html += '<input id="mob-csearch" type="text" placeholder="名前で検索..." style="flex:1;padding:8px 12px;border-radius:10px;border:1px solid rgba(43,91,168,0.2);background:rgba(255,255,255,0.8);font-size:13px;outline:none;" oninput="mobFilterComp(this.value)">';
+    var active = companions.filter(function(c){ return !c.isNG; });
+    var html = '<div class="hero"><div class="hero-title">コンパニオン一覧</div><div class="hero-sub">'+active.length+'名</div></div>';
+    html += '<div style="padding:10px 12px 6px;">';
+    html += '<input id="mob-csearch" type="text" placeholder="名前で検索..." ';
+    html += 'style="width:100%;padding:9px 14px;border-radius:12px;border:1px solid rgba(43,91,168,0.2);background:rgba(255,255,255,0.85);font-size:13px;outline:none;box-sizing:border-box;" ';
+    html += 'oninput="mobFilterComp(this.value)">';
     html += '</div>';
-    html += '<div id="mob-clist" style="padding:0 12px;display:flex;flex-direction:column;gap:6px;margin-top:4px;">';
-    var colors = ['linear-gradient(135deg,#5b8dd9,#2B5BA8)','linear-gradient(135deg,#f9a8d4,#db2777)','linear-gradient(135deg,#6ee7b7,#059669)','linear-gradient(135deg,#fcd34d,#d97706)','linear-gradient(135deg,#a78bfa,#7c3aed)','linear-gradient(135deg,#fb923c,#ea580c)'];
-    companions.filter(function(c){ return !c.ng; }).forEach(function(c, i){
-      html += '<div class="card"><div class="cr">';
-      html += '<div class="av" style="background:'+colors[i%colors.length]+'">'+c.name.slice(0,1)+'</div>';
-      html += '<div style="flex:1;">';
-      html += '<div class="cr-name">'+c.name+(c.leader?' 👑':'')+'</div>';
-      html += '<div class="cr-sub">'+(c.height||'')+(c.height?'cm · ':'')+( c.age||'')+(c.age?'歳':'')+'</div>';
+    html += '<div id="mob-clist" style="padding:4px 12px 0;display:grid;grid-template-columns:1fr 1fr;gap:10px;">';
+    active.forEach(function(c){
+      var photo = (c.photos && c.photos.length > 0) ? c.photos[0] : '';
+      var initial = c.name.slice(0,1);
+      var skillBadges = '';
+      if(c.leader) skillBadges += '<span style="font-size:9px;background:rgba(251,191,36,0.9);color:#92400e;border-radius:4px;padding:1px 5px;font-weight:700;">👑</span> ';
+      if(c.mic) skillBadges += '<span style="font-size:9px;background:rgba(167,139,250,0.9);color:#4c1d95;border-radius:4px;padding:1px 5px;font-weight:700;">🎤</span> ';
+      if(c.dealer) skillBadges += '<span style="font-size:9px;background:rgba(52,211,153,0.9);color:#064e3b;border-radius:4px;padding:1px 5px;font-weight:700;">🃏</span>';
+      html += '<div class="mob-comp-card" data-id="'+c.id+'">';
+      html += '<div style="aspect-ratio:3/4;background:linear-gradient(135deg,#dce8f8,#c5d8f0);border-radius:12px 12px 0 0;overflow:hidden;position:relative;">';
+      if(photo){
+        html += '<img src="'+photo+'" style="width:100%;height:100%;object-fit:cover;" loading="lazy">';
+      } else {
+        html += '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:700;color:#93b4d8;">'+initial+'</div>';
+      }
+      if(skillBadges){
+        html += '<div style="position:absolute;top:6px;left:6px;display:flex;gap:3px;flex-wrap:wrap;">'+skillBadges+'</div>';
+      }
       html += '</div>';
-      if(c.isNG) html += '<div style="font-size:10px;background:rgba(239,68,68,0.1);color:#dc2626;border-radius:6px;padding:2px 7px;font-weight:600;">NG</div>';
-      html += '</div></div>';
+      html += '<div style="padding:8px 10px;background:rgba(255,255,255,0.85);border-radius:0 0 12px 12px;">';
+      html += '<div style="font-size:12px;font-weight:700;color:#1e3a6e;">'+c.name+'</div>';
+      html += '<div style="font-size:10px;color:rgba(30,58,110,0.5);margin-top:2px;">'+(c.height||'')+(c.height?'cm':'')+(c.age?' · '+c.age+'歳':'')+'</div>';
+      html += '</div>';
+      html += '</div>';
     });
     html += '</div><div style="height:16px;"></div>';
     return html;
@@ -3168,13 +3199,15 @@ async function switchMode(mode){
   window.mobFilterComp = function(q){
     var list = document.getElementById('mob-clist');
     if(!list) return;
-    var cards = list.querySelectorAll('.card');
+    var cards = list.querySelectorAll('.mob-comp-card');
     var qlow = q.toLowerCase();
     cards.forEach(function(card){
-      var name = card.querySelector('.cr-name')?.textContent?.toLowerCase() || '';
+      var nameEl = card.querySelector('div[style*="font-weight:700"]');
+      var name = nameEl ? nameEl.textContent.toLowerCase() : '';
       card.style.display = (!q || name.includes(qlow)) ? '' : 'none';
     });
   };
+
 
   // ── シフト選択画面 ──
   function renderShiftHome(){
