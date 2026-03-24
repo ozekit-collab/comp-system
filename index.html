@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.2.0 // 統合管理システム</title>
+<title>COMP v2.2.1 // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -1001,7 +1001,7 @@ header{
   <div class="mh-rainbow"></div>
   <div class="mbody" id="mob-body"></div>
   <nav class="mbnav">
-    <div class="mbn on" id="mbn-home" onclick="mNav('home')"><span class="mbn-ic">🏠</span>ホーム</div>
+    <div class="mbn on" id="mbn-comp" onclick="mNav('comp')"><span class="mbn-ic">👤</span>一覧</div>
     <div class="mbn" id="mbn-shift" onclick="mNav('shift')"><span class="mbn-ic">📋</span>シフト</div>
     <div class="mbn" id="mbn-summary" onclick="mNav('summary')"><span class="mbn-ic">📊</span>集計</div>
     <div class="mbn" id="mbn-hair" onclick="mNav('hair')"><span class="mbn-ic">✨</span>ヘアメ</div>
@@ -1375,7 +1375,7 @@ header{
 
 const SUPABASE_URL='https://zbtfhxfimmvqzwhmqmoj.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpidGZoeGZpbW12cXp3aG1xbW9qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3ODQ2NTIsImV4cCI6MjA4ODM2MDY1Mn0.X7b5QWO-NZdxwxaF_dVkMDpf6XDNea0MGiZdjsUiB9I';
-const APP_VERSION='2.2.0';
+const APP_VERSION='2.2.1';
 const APP_UPDATED='2026-03-10';
 const {createClient}=supabase;
 let db=createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -3050,7 +3050,7 @@ async function switchMode(mode){
   function isMob(){ return window.innerWidth <= 768; }
 
   // 状態管理
-  var state = { screen:'home', evId:null, date:null, slotIdx:0, daySlots:[] };
+  var state = { screen:'comp', evId:null, date:null, slotIdx:0, daySlots:[] };
 
   // 初期化（DOMContentLoaded後に呼ぶ）
   function init(){
@@ -3071,12 +3071,12 @@ async function switchMode(mode){
 
   // ナビ切り替え
   window.mNav = function(tab){
-    ['home','shift','summary','hair'].forEach(function(t){
+    ['comp','shift','summary','hair'].forEach(function(t){
       var el = document.getElementById('mbn-'+t);
       if(el) el.classList.toggle('on', t===tab);
     });
-    if(tab==='home'){ state.screen='home'; render(); }
-    else if(tab==='shift'){ state.screen='home'; render(); }
+    if(tab==='comp'){ state.screen='comp'; render(); }
+    else if(tab==='shift'){ state.screen='shift'; render(); }
     else if(tab==='summary'){ state.screen='summary'; render(); }
     else if(tab==='hair'){ state.screen='hair'; render(); }
   };
@@ -3122,7 +3122,8 @@ async function switchMode(mode){
     var info = document.getElementById('mob-info');
     if(info) info.textContent = companions.length + '名登録';
     body.scrollTop = 0;
-    if(state.screen==='home'){ body.innerHTML = renderHome(); bindHomeEvents(); }
+    if(state.screen==='comp'){ body.innerHTML = renderComp(); }
+    else if(state.screen==='shift'){ body.innerHTML = renderShiftHome(); bindHomeEvents(); }
     else if(state.screen==='days'){ body.innerHTML = renderDays(); bindDayEvents(); }
     else if(state.screen==='slot'){ body.innerHTML = renderSlot(); bindSlotEvents(); attachSwipeListener(); }
     else if(state.screen==='summary') body.innerHTML = renderSummary();
@@ -3141,8 +3142,42 @@ async function switchMode(mode){
     });
   }
 
-  // ── ① ホーム画面 ──
-  function renderHome(){
+
+  // ── コンパニオン一覧 ──
+  function renderComp(){
+    var html = '<div class="hero"><div class="hero-title">コンパニオン一覧</div><div class="hero-sub">'+companions.length+'名登録</div></div>';
+    html += '<div style="padding:10px 12px 6px;display:flex;gap:8px;">';
+    html += '<input id="mob-csearch" type="text" placeholder="名前で検索..." style="flex:1;padding:8px 12px;border-radius:10px;border:1px solid rgba(43,91,168,0.2);background:rgba(255,255,255,0.8);font-size:13px;outline:none;" oninput="mobFilterComp(this.value)">';
+    html += '</div>';
+    html += '<div id="mob-clist" style="padding:0 12px;display:flex;flex-direction:column;gap:6px;margin-top:4px;">';
+    var colors = ['linear-gradient(135deg,#5b8dd9,#2B5BA8)','linear-gradient(135deg,#f9a8d4,#db2777)','linear-gradient(135deg,#6ee7b7,#059669)','linear-gradient(135deg,#fcd34d,#d97706)','linear-gradient(135deg,#a78bfa,#7c3aed)','linear-gradient(135deg,#fb923c,#ea580c)'];
+    companions.filter(function(c){ return !c.ng; }).forEach(function(c, i){
+      html += '<div class="card"><div class="cr">';
+      html += '<div class="av" style="background:'+colors[i%colors.length]+'">'+c.name.slice(0,1)+'</div>';
+      html += '<div style="flex:1;">';
+      html += '<div class="cr-name">'+c.name+(c.leader?' 👑':'')+'</div>';
+      html += '<div class="cr-sub">'+(c.height||'')+(c.height?'cm · ':'')+( c.age||'')+(c.age?'歳':'')+'</div>';
+      html += '</div>';
+      if(c.isNG) html += '<div style="font-size:10px;background:rgba(239,68,68,0.1);color:#dc2626;border-radius:6px;padding:2px 7px;font-weight:600;">NG</div>';
+      html += '</div></div>';
+    });
+    html += '</div><div style="height:16px;"></div>';
+    return html;
+  }
+
+  window.mobFilterComp = function(q){
+    var list = document.getElementById('mob-clist');
+    if(!list) return;
+    var cards = list.querySelectorAll('.card');
+    var qlow = q.toLowerCase();
+    cards.forEach(function(card){
+      var name = card.querySelector('.cr-name')?.textContent?.toLowerCase() || '';
+      card.style.display = (!q || name.includes(qlow)) ? '' : 'none';
+    });
+  };
+
+  // ── シフト選択画面 ──
+  function renderShiftHome(){
     var html = '';
     var evColors = [
       'background:linear-gradient(135deg,#2B5BA8,#1e4080)',
@@ -3200,8 +3235,6 @@ async function switchMode(mode){
     }
     state.evId = evId;
     state.screen = 'days';
-    document.getElementById('mbn-shift')?.classList.add('on');
-    document.getElementById('mbn-home')?.classList.remove('on');
     render();
   };
 
@@ -3216,7 +3249,7 @@ async function switchMode(mode){
     var rateColor = rate>=100?'#ef4444':rate>=70?'#fbbf24':'#fff';
 
     var html = '<div class="hero">';
-    html += '<div class="hero-back" onclick="mGoHome()">‹ ホーム</div>';
+    html += '<div class="hero-back" onclick="mGoShift()">‹ ホーム</div>';
     html += '<div class="hero-title">'+ev.name+'</div>';
     html += '<div class="hero-sub">日付を選んでください</div>';
     html += '<div class="hero-stats">';
@@ -3247,10 +3280,10 @@ async function switchMode(mode){
     return html;
   }
 
-  window.mGoHome = function(){
-    state.screen='home';
-    ['home','shift','summary','hair'].forEach(function(t){
-      document.getElementById('mbn-'+t)?.classList.toggle('on',t==='home');
+  window.mGoShift = function(){
+    state.screen='shift';
+    ['comp','shift','summary','hair'].forEach(function(t){
+      document.getElementById('mbn-'+t)?.classList.toggle('on',t==='shift');
     });
     render();
   };
