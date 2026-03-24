@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.2.4 // 統合管理システム</title>
+<title>COMP v2.2.5 // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -461,6 +461,7 @@ header{
 .lchip:hover{box-shadow:0 0 0 2px rgba(220,38,38,.3);border-color:#f87171;}
 .lchip.is-leader{background:#fef3c7;border-color:#fde68a;color:#b45309;font-weight:700;}
 .lchip.over-cap{opacity:.6;border-style:dashed;}
+.lchip.is-ng-chip{border-color:#fca5a5;background:#fff5f5;color:#dc2626;text-decoration:line-through;}
 .wchip{display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;font-size:11px;background:#f0fdf4;border:1px solid #bbf7d0;color:#16a34a;cursor:pointer;white-space:nowrap;line-height:1.7;transition:all .1s;}
 .wchip:hover{background:#dcfce7;border-color:#16a34a;}
 .leader-sel{background:#fef3c7;border:1px solid #fde68a;color:#b45309;padding:2px 6px;border-radius:5px;font-size:11px;outline:none;cursor:pointer;max-width:120px;font-weight:600;}
@@ -972,6 +973,7 @@ header{
 #mob .mc{background:rgba(255,255,255,0.85);border:1px solid rgba(43,91,168,0.12);border-radius:10px;padding:7px 13px;font-size:12px;font-weight:600;color:#1e3a6e;user-select:none;-webkit-tap-highlight-color:transparent;}
 #mob .mc.ldr{background:rgba(254,243,199,0.95);color:#b45309;border-color:rgba(251,191,36,0.3);}
 #mob .mc.over{background:rgba(254,226,226,0.85);color:#b91c1c;border-color:rgba(239,68,68,0.15);}
+#mob .mc.ng{background:rgba(255,245,245,0.9);color:#dc2626;border-color:#fca5a5;text-decoration:line-through;}
 #mob .mc.pressing{transform:scale(0.93);background:rgba(254,226,226,0.95);border-color:#f87171;box-shadow:0 0 0 3px rgba(239,68,68,0.2);transition:transform 0.1s;}
 #mob .wc{background:rgba(220,232,248,0.85);border:1px solid rgba(43,91,168,0.15);border-radius:10px;padding:7px 13px;font-size:12px;font-weight:600;color:var(--jopt);cursor:pointer;-webkit-tap-highlight-color:transparent;}
 #mob .wc:active{background:rgba(43,91,168,0.2);}
@@ -1377,7 +1379,7 @@ header{
 
 const SUPABASE_URL='https://zbtfhxfimmvqzwhmqmoj.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpidGZoeGZpbW12cXp3aG1xbW9qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3ODQ2NTIsImV4cCI6MjA4ODM2MDY1Mn0.X7b5QWO-NZdxwxaF_dVkMDpf6XDNea0MGiZdjsUiB9I';
-const APP_VERSION='2.2.4';
+const APP_VERSION='2.2.5';
 const APP_UPDATED='2026-03-10';
 const {createClient}=supabase;
 let db=createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -2322,13 +2324,14 @@ function renderListTable(){
     else{
       asgn.forEach((n,i)=>{
         const comp=companions.find(c=>c.name===n);
-        const isLdr=curLdr===n,isOver=i>=cap,flag=getFlag(n,s),isDealer=!!comp?.dealer;
+        const isLdr=curLdr===n,isOver=i>=cap,flag=getFlag(n,s),isDealer=!!comp?.dealer,isNG=!!comp?.isNG;
         const chip=document.createElement('span');
-        chip.className='lchip'+(isLdr?' is-leader':'')+(isOver?' over-cap':'');
+        chip.className='lchip'+(isLdr?' is-leader':'')+(isOver?' over-cap':'')+(isNG?' is-ng-chip':'');
         if(flag!=='ok'){chip.style.background=WC[flag];chip.style.borderColor=WB[flag];chip.style.color=WT[flag];}
         chip.draggable=true;chip.style.cursor='grab';
-        chip.title=n+(isLdr?' 👑':'')+( isDealer?' 🃏':'')+( flag!=='ok'?(' ⚑'+WM[flag]):'')+'\nダブルクリックで削除';
+        chip.title=n+(isLdr?' 👑':'')+( isDealer?' 🃏':'')+( isNG?' ⚠️NG':'')+( flag!=='ok'?(' ⚑'+WM[flag]):'')+'\nダブルクリックで削除';
         chip.innerHTML=
+          (isNG?'<span style="font-size:10px;margin-right:2px;" title="NG">⚠️</span>':'')+
           (isLdr?'<span style="margin-right:2px">👑</span>':'')+
           `<span>${n}</span>`+
           (isDealer?'<span style="font-size:9px;margin-left:3px">🃏</span>':'')+
@@ -3452,8 +3455,10 @@ async function switchMode(mode){
       asgn.forEach(function(n,i){
         var isLdr = ldr===n;
         var isOver = i>=cap;
-        var cls = 'mc'+(isLdr?' ldr':isOver?' over':'');
-        html += '<span class="'+cls+'" data-name="'+n+'" data-code="'+s.code+'">'+(isLdr?'👑 ':'')+n+'</span>';
+        var compData = (typeof companions !== 'undefined') ? companions.find(function(c){ return c.name===n; }) : null;
+        var isNGComp = compData ? !!compData.isNG : false;
+        var cls = 'mc'+(isLdr?' ldr':isOver?' over':isNGComp?' ng':'');
+        html += '<span class="'+cls+'" data-name="'+n+'" data-code="'+s.code+'">'+(isNGComp?'⚠️ ':'')+( isLdr?'👑 ':'')+n+'</span>';
       });
     } else {
       html += '<span class="empty" style="padding:4px 0;">まだ配置されていません</span>';
