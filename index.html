@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.1.4 // 統合管理システム</title>
+<title>COMP v2.2.0 // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -915,7 +915,7 @@ header{
 
 /* ── 共通コンポーネント ── */
 #mob .hero{background:linear-gradient(135deg,var(--jopt),var(--jopt2));padding:14px 16px 18px;}
-#mob .hero-back{font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:8px;cursor:pointer;display:inline-block;}
+#mob .hero-back{font-size:13px;color:rgba(255,255,255,0.75);margin-bottom:10px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:6px 12px 6px 8px;background:rgba(255,255,255,0.12);border-radius:20px;-webkit-tap-highlight-color:transparent;}
 #mob .hero-title{font-size:20px;font-weight:800;color:#fff;}
 #mob .hero-sub{font-size:11px;color:rgba(255,255,255,0.6);margin-top:3px;}
 #mob .hero-stats{display:flex;gap:6px;margin-top:12px;}
@@ -972,6 +972,7 @@ header{
 #mob .mc{background:rgba(255,255,255,0.85);border:1px solid rgba(43,91,168,0.12);border-radius:10px;padding:7px 13px;font-size:12px;font-weight:600;color:#1e3a6e;user-select:none;-webkit-tap-highlight-color:transparent;}
 #mob .mc.ldr{background:rgba(254,243,199,0.95);color:#b45309;border-color:rgba(251,191,36,0.3);}
 #mob .mc.over{background:rgba(254,226,226,0.85);color:#b91c1c;border-color:rgba(239,68,68,0.15);}
+#mob .mc.pressing{transform:scale(0.93);background:rgba(254,226,226,0.95);border-color:#f87171;box-shadow:0 0 0 3px rgba(239,68,68,0.2);transition:transform 0.1s;}
 #mob .wc{background:rgba(220,232,248,0.85);border:1px solid rgba(43,91,168,0.15);border-radius:10px;padding:7px 13px;font-size:12px;font-weight:600;color:var(--jopt);cursor:pointer;-webkit-tap-highlight-color:transparent;}
 #mob .wc:active{background:rgba(43,91,168,0.2);}
 #mob .empty{padding:20px;text-align:center;font-size:12px;color:rgba(43,91,168,0.35);}
@@ -1374,7 +1375,7 @@ header{
 
 const SUPABASE_URL='https://zbtfhxfimmvqzwhmqmoj.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpidGZoeGZpbW12cXp3aG1xbW9qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3ODQ2NTIsImV4cCI6MjA4ODM2MDY1Mn0.X7b5QWO-NZdxwxaF_dVkMDpf6XDNea0MGiZdjsUiB9I';
-const APP_VERSION='2.1.4';
+const APP_VERSION='2.2.0';
 const APP_UPDATED='2026-03-10';
 const {createClient}=supabase;
 let db=createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -3054,24 +3055,16 @@ async function switchMode(mode){
   // 初期化（DOMContentLoaded後に呼ぶ）
   function init(){
     if(!isMob()) return;
-    var mob = document.getElementById('mob');
+    if(window._mobInited) return; // 二重初期化防止
+    window._mobInited = true;
     var pc = document.getElementById('passcodeScreen');
-    // パスコード完了を監視して再描画
-    if(pc && pc.style.display !== 'none'){
-      var observer = new MutationObserver(function(){
-        if(pc.style.display === 'none'){
-          render();
-          observer.disconnect();
-        }
-      });
-      observer.observe(pc, {attributes:true, attributeFilter:['style']});
-    }
     if(pc) pc.style.zIndex = '99999';
-    try {
-      render();
-    } catch(e) {
-      var body = document.getElementById('mob-body');
-      if(body) body.innerHTML = '<div style="padding:20px;color:red;font-size:12px;word-break:break-all;">ERROR: '+e.message+'<br>'+e.stack+'</div>';
+    // パスコードが表示中でなければ即描画
+    if(!pc || pc.style.display === 'none'){
+      try { render(); } catch(e) {
+        var body = document.getElementById('mob-body');
+        if(body) body.innerHTML = '<div style="padding:20px;color:red;font-size:12px;">ERROR: '+e.message+'</div>';
+      }
     }
     window.mobRerender = render;
   }
@@ -3088,19 +3081,64 @@ async function switchMode(mode){
     else if(tab==='hair'){ state.screen='hair'; render(); }
   };
 
+  // mob-bodyのスワイプ用変数（グローバル管理で重複防止）
+  var swStartX = 0, swStartY = 0, swTracking = false;
+  var swipeListenerAttached = false;
+
+  function attachSwipeListener(){
+    if(swipeListenerAttached) return;
+    swipeListenerAttached = true;
+    var body = document.getElementById('mob-body');
+    if(!body) return;
+    body.addEventListener('touchstart', function(e){
+      if(state.screen !== 'slot') return;
+      swStartX = e.touches[0].clientX;
+      swStartY = e.touches[0].clientY;
+      swTracking = true;
+    }, {passive:true});
+    body.addEventListener('touchmove', function(e){
+      if(state.screen !== 'slot' || !swTracking) return;
+      var dx = Math.abs(e.touches[0].clientX - swStartX);
+      var dy = Math.abs(e.touches[0].clientY - swStartY);
+      if(dx > dy && dx > 10){ e.preventDefault(); }
+      else if(dy > dx && dy > 10){ swTracking = false; }
+    }, {passive:false});
+    body.addEventListener('touchend', function(e){
+      if(state.screen !== 'slot' || !swTracking) return;
+      var dx = e.changedTouches[0].clientX - swStartX;
+      var dy = Math.abs(e.changedTouches[0].clientY - swStartY);
+      swTracking = false;
+      if(Math.abs(dx) > 55 && dy < 40){
+        if(dx < 0 && state.slotIdx < state.daySlots.length-1){ state.slotIdx++; render(); }
+        else if(dx > 0 && state.slotIdx > 0){ state.slotIdx--; render(); }
+      }
+    }, {passive:true});
+  }
+
   // メインrender（stateに応じて描画）
   function render(){
     var body = document.getElementById('mob-body');
     if(!body) return;
-    // ヘッダー情報更新
     var info = document.getElementById('mob-info');
     if(info) info.textContent = companions.length + '名登録';
     body.scrollTop = 0;
-    if(state.screen==='home') body.innerHTML = renderHome();
-    else if(state.screen==='days') body.innerHTML = renderDays();
-    else if(state.screen==='slot') { body.innerHTML = renderSlot(); bindSlotEvents(); }
+    if(state.screen==='home'){ body.innerHTML = renderHome(); bindHomeEvents(); }
+    else if(state.screen==='days'){ body.innerHTML = renderDays(); bindDayEvents(); }
+    else if(state.screen==='slot'){ body.innerHTML = renderSlot(); bindSlotEvents(); attachSwipeListener(); }
     else if(state.screen==='summary') body.innerHTML = renderSummary();
     else if(state.screen==='hair') body.innerHTML = renderHair();
+  }
+
+  function bindHomeEvents(){
+    document.querySelectorAll('#mob-body .ev-card').forEach(function(el){
+      el.addEventListener('click', function(){ mOpenEvent(el.dataset.evid); });
+    });
+  }
+
+  function bindDayEvents(){
+    document.querySelectorAll('#mob-body .card[data-date]').forEach(function(el){
+      el.addEventListener('click', function(){ mOpenDay(el.dataset.date); });
+    });
   }
 
   // ── ① ホーム画面 ──
@@ -3118,7 +3156,7 @@ async function switchMode(mode){
       var cap = (ev.slots||[]).reduce(function(s,sl){return s+sl.capacity;},0);
       var assigned_cnt = Object.values(ev.assigned||{}).reduce(function(s,n){return s+n.length;},0);
       var rate = cap>0 ? Math.round(assigned_cnt/cap*100)+'%' : '未開始';
-      html += '<div class="ev-card" style="'+evColors[i%evColors.length]+'" onclick="mOpenEvent(\'' + ev.id + '\')">'; 
+      html += '<div class="ev-card" style="'+evColors[i%evColors.length]+'" data-evid="' + ev.id + '">'; 
       html += '<div class="ev-inner">';
       html += '<div class="ev-n">0'+(i+1)+'</div>';
       html += '<div class="ev-name">'+ev.name+'</div>';
@@ -3178,7 +3216,7 @@ async function switchMode(mode){
     var rateColor = rate>=100?'#ef4444':rate>=70?'#fbbf24':'#fff';
 
     var html = '<div class="hero">';
-    html += '<div class="hero-back" onclick="mGoHome()">← ホーム</div>';
+    html += '<div class="hero-back" onclick="mGoHome()">‹ ホーム</div>';
     html += '<div class="hero-title">'+ev.name+'</div>';
     html += '<div class="hero-sub">日付を選んでください</div>';
     html += '<div class="hero-stats">';
@@ -3196,7 +3234,7 @@ async function switchMode(mode){
       var over = cnt > cap;
       var pct = cap>0 ? Math.min(100,Math.round(cnt/cap*100)) : 0;
       var color = over?'#ef4444':pct>=80?'#2B5BA8':'#059669';
-      html += '<div class="card" onclick="mOpenDay(\'' + date + '\')">'; 
+      html += '<div class="card" data-date="' + date + '">'; 
       html += '<div class="dr">';
       html += '<div><div class="dr-date">'+date+'</div><div class="dr-sub">'+slots.length+'枠 · '+slots.map(function(s){return s.code;}).join('/')+'</div></div>';
       html += '<div class="dr-right">';
@@ -3245,7 +3283,7 @@ async function switchMode(mode){
     var ldr = (ev.leaders||{})[s.code];
 
     var html = '<div class="slot-hero">';
-    html += '<div class="hero-back" onclick="mBackToDays()">← '+state.date+'</div>';
+    html += '<div class="hero-back" onclick="mBackToDays()">‹ '+state.date+'</div>';
     html += '<div class="slot-code">'+s.code+'</div>';
     html += '<div class="slot-time">'+s.time+'</div>';
     html += '<div class="cap-row">';
@@ -3285,7 +3323,7 @@ async function switchMode(mode){
       html += '<div class="sec">希望者 · タップで追加</div>';
       html += '<div class="chips">';
       wished.forEach(function(p){
-        html += '<span class="wc" onclick="mAddToSlot(\'' + s.code + '\',\'' + p.name.replace(/'/g,'') + '\')">＋ ' + p.name + '</span>';
+        html += '<span class="wc" data-code="' + s.code + '" data-name="' + p.name.replace(/"/g,'&quot;') + '">＋ ' + p.name + '</span>';
       });
       html += '</div>';
     }
@@ -3294,34 +3332,36 @@ async function switchMode(mode){
   }
 
   function bindSlotEvents(){
-    // 長押し削除
+    // 希望者タップで追加
+    document.querySelectorAll('#mob-body .wc').forEach(function(chip){
+      chip.addEventListener('click', function(){
+        mAddToSlot(chip.dataset.code, chip.dataset.name);
+      });
+    });
+    // 長押し削除（pressingフィードバック付き）
     document.querySelectorAll('#mob-mchips .mc').forEach(function(chip){
       var timer = null;
       chip.addEventListener('touchstart', function(e){
+        chip.classList.add('pressing');
         timer = setTimeout(function(){
+          chip.classList.remove('pressing');
           if(navigator.vibrate) navigator.vibrate(30);
           mShowToast(chip.dataset.name, chip.dataset.code);
         }, 650);
       }, {passive:true});
-      chip.addEventListener('touchend', function(){ clearTimeout(timer); }, {passive:true});
-      chip.addEventListener('touchmove', function(){ clearTimeout(timer); }, {passive:true});
+      chip.addEventListener('touchend', function(){
+        clearTimeout(timer);
+        chip.classList.remove('pressing');
+      }, {passive:true});
+      chip.addEventListener('touchmove', function(){
+        clearTimeout(timer);
+        chip.classList.remove('pressing');
+      }, {passive:true});
     });
-    // スワイプジェスチャー
-    var startX = 0;
-    var body = document.getElementById('mob-body');
-    if(!body) return;
-    body.addEventListener('touchstart', function(e){ startX=e.touches[0].clientX; }, {passive:true});
-    body.addEventListener('touchend', function(e){
-      var dx = e.changedTouches[0].clientX - startX;
-      if(Math.abs(dx) > 55){
-        if(dx < 0 && state.slotIdx < state.daySlots.length-1){ state.slotIdx++; render(); bindSlotEvents(); }
-        else if(dx > 0 && state.slotIdx > 0){ state.slotIdx--; render(); bindSlotEvents(); }
-      }
-    }, {passive:true});
   }
 
-  window.mSlotNext = function(){ if(state.slotIdx<state.daySlots.length-1){state.slotIdx++;render();bindSlotEvents();} };
-  window.mSlotPrev = function(){ if(state.slotIdx>0){state.slotIdx--;render();bindSlotEvents();} };
+  window.mSlotNext = function(){ if(state.slotIdx<state.daySlots.length-1){state.slotIdx++;render();} };
+  window.mSlotPrev = function(){ if(state.slotIdx>0){state.slotIdx--;render();} };
   window.mBackToDays = function(){ state.screen='days'; render(); };
   window.mAddToSlot = function(code, name){
     addToSlot(code, name);
@@ -3447,9 +3487,9 @@ async function switchMode(mode){
           var t = start + i*20;
           var isLdr = isLeaderCapable(e.name);
           html += '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(43,91,168,0.06);">';
-          html += '<span style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--jopt);min-width:44px;">'+minToStr(t)+'</span>';
+          html += '<span style="font-family:\"DM Mono\",monospace;font-size:13px;font-weight:700;color:var(--jopt);min-width:44px;">'+minToStr(t)+'</span>';
           html += '<span style="font-size:13px;font-weight:600;color:#1e3a6e;flex:1;">'+(isLdr?'👑 ':'')+e.name+'</span>';
-          html += '<span style="font-family:'DM Mono',monospace;font-size:10px;background:rgba(43,91,168,0.1);color:var(--jopt);border-radius:6px;padding:2px 7px;font-weight:700;">'+e.code+'</span>';
+          html += '<span style="font-family:\"DM Mono\",monospace;font-size:10px;background:rgba(43,91,168,0.1);color:var(--jopt);border-radius:6px;padding:2px 7px;font-weight:700;">'+e.code+'</span>';
           html += '</div>';
         });
       }
@@ -3511,6 +3551,11 @@ function checkPasscode(){
   if(pcValue===pcCorrect){
     sessionStorage.setItem('pc_auth',Date.now().toString());
     document.getElementById('passcodeScreen').style.display='none';
+    // スマホUIを即座に再描画（ラグなし）
+    if(window.innerWidth<=768){
+      if(window.mobInit && !window._mobInited){ window._mobInited=true; window.mobInit(); }
+      else if(window.mobRerender){ window.mobRerender(); }
+    }
   } else {
     // エラー表示
     for(let i=0;i<6;i++){const d=document.getElementById('d'+i);if(d){d.classList.remove('filled');d.classList.add('error');}}
@@ -3613,7 +3658,7 @@ window.addEventListener('DOMContentLoaded',async ()=>{
   loadShiftFromStorage();
   loadCompanions();
   // スマホUI初期化（ローカルデータ読み込み後）
-  if(window.innerWidth<=768) setTimeout(mobInit, 100);
+  if(window.innerWidth<=768) setTimeout(function(){ try{ mobInit(); }catch(e){ console.error("mobInit error:",e); } }, 300);
   // その後Supabaseから最新データを取得してマージ
   updateSyncBadge('loading');
   const remote=await loadFromSupabase();
