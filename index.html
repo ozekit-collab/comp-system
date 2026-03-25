@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.4.8 // 統合管理システム</title>
+<title>COMP v2.4.9 // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -2413,8 +2413,12 @@ function renderListTable(){
         wDiv.appendChild(chip);
       });
       wishedToShow.forEach(p=>{
+        const comp=companions.find(c=>c.name===p.name);
+        const isNewbieP=!!(comp&&comp.newbie);
         const chip=document.createElement('span');
-        chip.className='wchip';chip.textContent='＋'+p.name;chip.draggable=true;
+        chip.className='wchip';
+        chip.draggable=true;
+        chip.innerHTML=(isNewbieP?'<span style="font-size:10px;margin-right:2px;">🔰</span>':'')+('＋'+p.name);
         chip.addEventListener('click',()=>addToSlot(s.code,p.name));
         chip.addEventListener('dragstart',e=>{e.stopPropagation();e.dataTransfer.setData('text/plain',p.name);e.dataTransfer.effectAllowed='copy';});
         wDiv.appendChild(chip);
@@ -2525,7 +2529,7 @@ function renderPool(){
     return`<div class="pool-person${isA?' pool-assigned':''}${isNG?' pool-ng':''}" draggable="true"
       ondragstart="event.dataTransfer.setData('text/plain','${p.name.replace(/'/g,"\'")}');event.dataTransfer.effectAllowed='copy';"
       onclick="showPersonShiftModal('${p.name.replace(/'/g,"\'")}')">
-      <span class="pool-name">${ngBadge}${p.name}</span>
+      <span class="pool-name">${ngBadge}${newbieBadge}${p.name}</span>
       <span class="pool-wishes">${ws.join(' ')}</span>
     </div>`;
   }).join('');
