@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.5.3 // 統合管理システム</title>
+<title>COMP v2.5.4 // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -2388,11 +2388,19 @@ function renderListTable(){
           (flag!=='ok'?`<span style="font-size:8px;font-weight:900;background:rgba(0,0,0,.12);border-radius:3px;padding:0 2px;margin-left:3px">${WS[flag]}</span>`:'');
         chip.addEventListener('dragstart',e=>{e.stopPropagation();e.dataTransfer.setData('text/plain','REMOVE:'+s.code+':'+n);e.dataTransfer.effectAllowed='move';chip.style.opacity='0.4';});
         chip.addEventListener('dragend',()=>{chip.style.opacity='';});
-        chip.addEventListener('dblclick',e=>{
+        // draggable=trueがdblclickを潰すため、click2回で代替検知
+        chip._dblTap=0;
+        chip.addEventListener('click',e=>{
           e.stopPropagation();
-          const normName=s=>(s||'').trim().replace(/\s+/g,' ').replace(/　/g,' ');
-          const found=companions.find(c=>normName(c.name)===normName(n));
-          if(found){openDetail(found.id);}else{showPersonShiftModal(n);}
+          const now=Date.now();
+          if(now-chip._dblTap<350){
+            chip._dblTap=0;
+            const normName=s=>(s||'').trim().replace(/\s+/g,' ').replace(/　/g,' ');
+            const found=companions.find(c=>normName(c.name)===normName(n));
+            if(found){openDetail(found.id);}else{showPersonShiftModal(n);}
+          } else {
+            chip._dblTap=now;
+          }
         });
         mDiv.appendChild(chip);
       });
