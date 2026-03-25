@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.5.1 // 統合管理システム</title>
+<title>COMP v2.5.3 // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -2371,7 +2371,7 @@ function renderListTable(){
     if(!asgn.length){mDiv.innerHTML='<span style="color:var(--text-muted);font-size:11px">—</span>';}
     else{
       asgn.forEach((n,i)=>{
-        const comp=companions.find(c=>c.name===n);
+        const comp=findCompByName(n);
         const isLdr=curLdr===n,isOver=i>=cap,flag=getFlag(n,s),isDealer=!!(comp&&comp.dealer),isNG=isNGByName(n);
         const chip=document.createElement('span');
         chip.className='lchip'+(isLdr?' is-leader':'')+(isOver?' over-cap':'')+(isNG?' is-ng-chip':'');
@@ -2388,7 +2388,12 @@ function renderListTable(){
           (flag!=='ok'?`<span style="font-size:8px;font-weight:900;background:rgba(0,0,0,.12);border-radius:3px;padding:0 2px;margin-left:3px">${WS[flag]}</span>`:'');
         chip.addEventListener('dragstart',e=>{e.stopPropagation();e.dataTransfer.setData('text/plain','REMOVE:'+s.code+':'+n);e.dataTransfer.effectAllowed='move';chip.style.opacity='0.4';});
         chip.addEventListener('dragend',()=>{chip.style.opacity='';});
-        chip.addEventListener('dblclick',e=>{e.stopPropagation();openDetail(companions.find(c=>c.name===n)?.id);});
+        chip.addEventListener('dblclick',e=>{
+          e.stopPropagation();
+          const normName=s=>(s||'').trim().replace(/\s+/g,' ').replace(/　/g,' ');
+          const found=companions.find(c=>normName(c.name)===normName(n));
+          if(found){openDetail(found.id);}else{showPersonShiftModal(n);}
+        });
         mDiv.appendChild(chip);
       });
     }
@@ -2413,7 +2418,7 @@ function renderListTable(){
         wDiv.appendChild(chip);
       });
       wishedToShow.forEach(p=>{
-        const comp=companions.find(c=>c.name===p.name);
+        const comp=findCompByName(p.name);
         const isNewbieP=isNewbieByName(p.name);
         const chip=document.createElement('span');
         chip.className='wchip';
@@ -2467,6 +2472,14 @@ function isNewbieByName(name){
     (c.aliases||[]).some(a=>a.trim().toLowerCase()===nl)
   );
   return !!(comp&&comp.newbie);
+}
+// 名前・別名でcompanionを検索するヘルパー
+function findCompByName(name){
+  const nl=name.toLowerCase();
+  return companions.find(c=>
+    c.name.toLowerCase()===nl||
+    (c.aliases||[]).some(a=>a.trim().toLowerCase()===nl)
+  )||null;
 }
 
 function addToSlot(code,name){
