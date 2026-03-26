@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.6.4 // 統合管理システム</title>
+<title>COMP v2.6.7 // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -2131,7 +2131,7 @@ function updateSyncBadge(state, dateStr){
 function saveAllEventsToStorage(){
   try{
     const data={};
-    shiftEvents.forEach(ev=>{data[ev.id]={people:ev.people||[],assigned:ev.assigned||{},leaders:ev.leaders||{},hairMake:ev.hairMake||{},hairMakePool:ev.hairMakePool||[],manualAssigned:ev.manualAssigned||{}};});
+    shiftEvents.forEach(ev=>{data[ev.id]={people:ev.people||[],assigned:ev.assigned||{},leaders:ev.leaders||{},hairMake:ev.hairMake||{},hairMakePool:ev.hairMakePool||[],manualAssigned:ev.manualAssigned||{},slots:ev.slots||[]};});
     localStorage.setItem('shift_data_v2',JSON.stringify(data));
     localStorage.setItem('shift_current_event_v2',currentEventId);
     localStorage.setItem('shift_slot_version','v_17_50');
@@ -2185,11 +2185,12 @@ function loadShiftFromStorage(){
         const d=data[ev.id];
         if(!d)return ev;
         const a={},l={};
-        ev.slots.forEach(s=>{
+        const savedSlots=d.slots||ev.slots;
+        savedSlots.forEach(s=>{
           a[s.code]=(d.assigned||{})[s.code]||[];
           l[s.code]=(d.leaders||{})[s.code]??null;
         });
-        return{...ev,people:d.people||[],assigned:a,leaders:l,hairMake:d.hairMake||{},hairMakePool:d.hairMakePool||[],manualAssigned:d.manualAssigned||{}};
+        return{...ev,slots:d.slots||ev.slots,people:d.people||[],assigned:a,leaders:l,hairMake:d.hairMake||{},hairMakePool:d.hairMakePool||[],manualAssigned:d.manualAssigned||{}};
       });
     }
     if(evId&&shiftEvents.find(e=>e.id===evId))currentEventId=evId;
@@ -2319,13 +2320,13 @@ function renderListTable(){
       if(prevSlot.date!==slot.date){
         // 前のスロットが22:30以降開始かどうか（深夜勤務）
         const prevStartH=parseInt((prevSlot.time.match(/(\d+):/)||['','0'])[1]);
-        const isLateNight=prevStartH>=22||(prevStartH>=0&&prevStartH<8);
+        const isLateNight=prevStartH>=22;
         if(isLateNight){
           // 「直前日」かつ「翌日スロットが早朝〜昼（12時以前）」のみ対象
           const toDay=d=>{const m=d.match(/(\d+)\/(\d+)/);return m?parseInt(m[1])*31+parseInt(m[2]):0;};
           const dayDiff=toDay(slot.date)-toDay(prevSlot.date);
           const thisStartH=parseInt((slot.time.match(/(\d+):/)||['','13'])[1]);
-          if(dayDiff>=0&&dayDiff<=2&&thisStartH<13){return'early';}
+          if(dayDiff===1&&thisStartH<13){return'early';}
         }
       }
     }
