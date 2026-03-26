@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.6.3 // 統合管理システム</title>
+<title>COMP v2.6.4 // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -1070,6 +1070,8 @@ header{
     <button class="btn btn-outline" id="compCsvBtn" onclick="exportCompCSV()" style="font-size:11px;padding:6px 12px">↓ CSV</button>
     <button class="btn btn-primary" id="compAddBtn" onclick="openAddModal()" style="font-size:12px;padding:6px 14px">＋ 追加</button>
     <button class="btn btn-outline" id="shiftCsvBtn" style="display:none;font-size:11px;padding:6px 12px" onclick="exportShiftTable()">📋 シフト表を開く</button>
+    <button class="btn btn-outline" id="shiftSaveBtn" style="display:none;font-size:11px;padding:6px 12px" onclick="saveShiftSnapshot()" title="現在のシフトデータをJSONで保存">💾 セーブ</button>
+    <label class="btn btn-outline" id="shiftLoadBtn" style="display:none;font-size:11px;padding:6px 12px;cursor:pointer;" title="保存したJSONを読み込んで復元">📂 ロード<input type="file" accept=".json" style="display:none" onchange="loadShiftSnapshot(this)"></label>
     <button class="btn btn-primary" id="shiftAutoBtn" style="display:none;font-size:12px;padding:6px 14px" onclick="autoAssign()">⚡ 自動配置</button>
   </div>
 </header>
@@ -3231,6 +3233,49 @@ function renderHairMake(){
   });
 }
 
+// ── セーブ＆ロード ──
+function saveShiftSnapshot(){
+  saveCurrentEventData();
+  const snapshot={
+    version:APP_VERSION,
+    savedAt:new Date().toISOString(),
+    events:shiftEvents
+  };
+  const json=JSON.stringify(snapshot,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const evName=currentEvent().name.replace(/\s/g,'_');
+  const dt=new Date().toISOString().slice(0,16).replace(/:/g,'-').replace('T','_');
+  a.href=url;a.download=`COMP_${evName}_${dt}.json`;a.click();
+  URL.revokeObjectURL(url);
+  showToast('💾 セーブしました — '+a.download,'success');
+}
+
+function loadShiftSnapshot(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!data.events||!Array.isArray(data.events)){showToast('❌ 有効なセーブデータではありません','error');return;}
+      if(!confirm(`「${file.name}」を読み込みます。\n現在のシフトデータは上書きされます。よろしいですか？`)){input.value='';return;}
+      // 復元
+      shiftEvents=data.events;
+      currentEventId=shiftEvents[0]?.id||shiftEvents[0]?.name;
+      syncGlobals();
+      // localStorageにも保存
+      saveAllEventsToStorage();
+      renderEventBar();renderShiftEdit();renderShiftStats();
+      showToast('📂 ロード完了 — '+(data.savedAt?new Date(data.savedAt).toLocaleString('ja-JP'):''),'success');
+    }catch(err){
+      showToast('❌ 読み込みエラー: '+err.message,'error');
+    }
+    input.value='';
+  };
+  reader.readAsText(file);
+}
+
 function exportShiftTable(){
   const ev=currentEvent();
   const slots=ev.slots||[];
@@ -3321,7 +3366,7 @@ async function switchMode(mode){
   // ヘッダーボタン切替
   const isShift=mode==='shift';
   ['compCsvBtn','compAddBtn'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display=isShift?'none':'';});
-  ['shiftCsvBtn','shiftAutoBtn'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display=isShift?'':'none';});
+  ['shiftCsvBtn','shiftSaveBtn','shiftLoadBtn','shiftAutoBtn'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display=isShift?'':'none';});
   if(isShift){syncGlobals();renderShiftEdit();renderShiftStats();}
   else{filterCompanions();}
 }
