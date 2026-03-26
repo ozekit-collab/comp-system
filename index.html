@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.5.7 // 統合管理システム</title>
+<title>COMP v2.6.3 // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -319,7 +319,7 @@ header{
 }
 .list-table{
   width:100%;border-collapse:collapse;font-size:12px;
-  table-layout:fixed;min-width:700px; /* 最低幅保証 */
+  table-layout:fixed;min-width:900px;
 }
 .list-table th,.list-table td{overflow:hidden;text-overflow:ellipsis;}
 .list-table thead th{
@@ -464,7 +464,7 @@ header{
 .lchip.is-ng-chip{border-color:#fca5a5;background:#fff5f5;color:#dc2626;text-decoration:line-through;}
 .wchip{display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;font-size:11px;background:#f0fdf4;border:1px solid #bbf7d0;color:#16a34a;cursor:pointer;white-space:nowrap;line-height:1.7;transition:all .1s;}
 .wchip:hover{background:#dcfce7;border-color:#16a34a;}
-.leader-sel{background:#fef3c7;border:1px solid #fde68a;color:#b45309;padding:2px 6px;border-radius:5px;font-size:11px;outline:none;cursor:pointer;max-width:120px;font-weight:600;}
+.leader-sel{background:#fef3c7;border:1px solid #fde68a;color:#b45309;padding:2px 6px;border-radius:5px;font-size:11px;outline:none;cursor:pointer;width:150px;min-width:150px;max-width:150px;font-weight:600;}
 .leader-none{color:var(--text-muted);font-size:10px;font-style:italic;}
 
 /* ── イベントピル（event-pill） ── */
@@ -1174,14 +1174,20 @@ header{
           <div class="list-table-wrap">
             <table class="list-table">
               <colgroup>
-                <col style="width:52px"><col style="width:76px"><col style="width:100px">
-                <col style="width:66px"><col style="width:126px"><col style="width:auto"><col style="width:34%">
+                <col style="width:44px"><!-- Slot -->
+                <col style="width:72px"><!-- 日付 -->
+                <col style="width:98px"><!-- 時間 -->
+                <col style="width:155px"><!-- リーダー -->
+                <col style="width:88px"><!-- 人数 -->
+                <col style="width:auto"><!-- 配置済み -->
+                <col style="width:26%"><!-- 希望者 -->
               </colgroup>
               <thead>
                 <tr>
-                  <th>Slot</th><th>日付</th><th>時間</th><th>人/定員</th>
+                  <th>Slot</th><th>日付</th><th>時間</th>
                   <th>👑リーダー</th>
-                  <th>配置済み <span style="font-size:8px;font-weight:400;opacity:.6">ドラッグ移動・ダブルクリックで詳細</span>
+                  <th>人数</th>
+                  <th>配置済み <span style="font-size:8px;font-weight:400;opacity:.6">クリックで詳細</span>
                     <span style="float:right;display:flex;gap:6px;font-size:8px;font-weight:400">
                       <span style="background:#fff7ed;color:#c2410c;border:1px solid #fb923c;border-radius:3px;padding:0 3px">!</span>希望外
                       <span style="background:#fdf4ff;color:#7e22ce;border:1px solid #d8b4fe;border-radius:3px;padding:0 3px">↕</span>飛び枠
@@ -2353,8 +2359,13 @@ function renderListTable(){
     const tdCode=document.createElement('td');tdCode.className='list-slot-code';tdCode.textContent=s.code;
     const tdDate=document.createElement('td');tdDate.className='list-date';tdDate.textContent=s.date;
     const tdTime=document.createElement('td');tdTime.className='list-time';tdTime.textContent=s.time;
-    const tdCap=document.createElement('td');tdCap.className='list-cap';tdCap.style.color=capColor;
-    tdCap.innerHTML=`${asgn.length}<span style="color:var(--text-muted);font-weight:400"> / ${cap}</span>`;
+    const tdCap=document.createElement('td');tdCap.className='list-cap';
+    tdCap.innerHTML=`<div style="display:flex;align-items:center;gap:2px;white-space:nowrap;">
+      <button onclick="changeCapacity('${s.code}',-1)" style="width:15px;height:15px;border:1px solid var(--border);border-radius:3px;background:#fff;color:var(--text-dim);font-size:11px;line-height:1;cursor:pointer;padding:0;flex-shrink:0;" title="定員-1">−</button>
+      <span style="color:${capColor};font-weight:700;font-size:12px;min-width:14px;text-align:center">${asgn.length}</span>
+      <span style="color:var(--text-muted);font-size:10px;font-weight:400">/${cap}</span>
+      <button onclick="changeCapacity('${s.code}',+1)" style="width:15px;height:15px;border:1px solid var(--border);border-radius:3px;background:#fff;color:var(--text-dim);font-size:11px;line-height:1;cursor:pointer;padding:0;flex-shrink:0;" title="定員+1">＋</button>
+    </div>`;
 
     const tdLdr=document.createElement('td');
     if(!ldrCands.length){tdLdr.innerHTML='<span class="leader-none">—</span>';}
@@ -2388,11 +2399,11 @@ function renderListTable(){
           (flag!=='ok'?`<span style="font-size:8px;font-weight:900;background:rgba(0,0,0,.12);border-radius:3px;padding:0 2px;margin-left:3px">${WS[flag]}</span>`:'');
         chip.addEventListener('dragstart',e=>{e.stopPropagation();e.dataTransfer.setData('text/plain','REMOVE:'+s.code+':'+n);e.dataTransfer.effectAllowed='move';chip.style.opacity='0.4';});
         chip.addEventListener('dragend',()=>{chip.style.opacity='';});
-        // チップ単体クリックで詳細モーダル（companion検索不要・shiftPeople直結）
+        // comp変数は描画時に既取得済み→idを直接使用
         chip.addEventListener('click',e=>{
           if(e.defaultPrevented)return;
           e.stopPropagation();
-          showPersonShiftModal(n);
+          if(comp&&comp.id){openDetail(comp.id);}else{showPersonShiftModal(n);}
         });
         mDiv.appendChild(chip);
       });
@@ -2443,7 +2454,7 @@ function renderListTable(){
     });
 
     tr.appendChild(tdCode);tr.appendChild(tdDate);tr.appendChild(tdTime);
-    tr.appendChild(tdCap);tr.appendChild(tdLdr);tr.appendChild(tdM);tr.appendChild(tdW);
+    tr.appendChild(tdLdr);tr.appendChild(tdCap);tr.appendChild(tdM);tr.appendChild(tdW);
     tbody.appendChild(tr);
   });
   oldTbody.parentNode.replaceChild(tbody,oldTbody);
@@ -2513,6 +2524,14 @@ function setSlotLeader(code,name){
   if(!ev.assigned[code]?.includes(name)){showToast(name+' はこのスロットに配置されていません','error');renderListTable();return;}
   if(!isLeaderCapable(name)){showToast(name+' はリーダースキルがありません','error');renderListTable();return;}
   ev.leaders[code]=name;saveCurrentEventData();renderListTable();renderShiftStats();saveAllEventsToStorage();
+}
+
+function changeCapacity(code,delta){
+  const ev=currentEvent();
+  const slot=ev.slots.find(s=>s.code===code);if(!slot)return;
+  slot.capacity=Math.max(1,slot.capacity+delta);
+  saveCurrentEventData();renderShiftEdit();renderShiftStats();saveAllEventsToStorage();
+  showToast(`${code} 定員 → ${slot.capacity}名`);
 }
 
 // ── プールフィルター（サイドバー非表示だが関数は残す） ──
@@ -3225,18 +3244,18 @@ function exportShiftTable(){
     const daySlots=slots.filter(s=>s.date===date);
     const totalA=daySlots.reduce((a,s)=>a+(asgn[s.code]||[]).length,0);
     const totalC=daySlots.reduce((a,s)=>a+s.capacity,0);
-    rows+=`<tr class="ds"><td colspan="4">${date}　${totalA}/${totalC}</td></tr>`;
+    rows+=`<tr class="ds"><td colspan="5">${date}　${totalA}/${totalC}</td></tr>`;
     daySlots.forEach(s=>{
       const names=asgn[s.code]||[];
       const ldr=ldrs[s.code]||'';
       const over=names.length>s.capacity;
       const cc=over?'#c00':names.length>=s.capacity?'#1a56db':'#059669';
-      const nl=names.map((n,i)=>{
-        if(n===ldr)return`<b>👑${n}</b>`;
-        if(i>=s.capacity)return`<s style="color:#c00">${n}</s>`;
+      const nl=names.filter(n=>n!==ldr).map((n,i)=>{
+        const realIdx=names.indexOf(n);
+        if(realIdx>=s.capacity)return`<span style="color:#c00">${n}</span>`;
         return n;
       }).join('、');
-      rows+=`<tr><td class="cd">${s.code}</td><td class="ct">${s.time.replace(/~|〜/,'–')}</td><td class="cc" style="color:${cc}">${names.length}/${s.capacity}</td><td class="cn">${nl||'—'}</td></tr>`;
+      rows+=`<tr><td class="cd">${s.code}</td><td class="ct">${s.time.replace(/~|〜/,'–')}</td><td class="cl">${ldr?`👑 ${ldr}`:'—'}</td><td class="cc" style="color:${cc}">${names.length}名</td><td class="cn">${nl||'<span style="color:#bbb">—</span>'}</td></tr>`;
     });
   });
 
@@ -3253,13 +3272,20 @@ table{width:100%;border-collapse:collapse;}
 tr:nth-child(odd) td{background:#f5f6ff;}
 .ds td{background:#1e2a5e!important;color:#fff;font-weight:700;font-size:10px;padding:3px 5px;}
 .cd{padding:2px 4px;font-weight:800;color:#1a4db8;font-size:12px;white-space:nowrap;width:28px;}
-.ct{padding:2px 3px;font-size:9px;color:#555;white-space:nowrap;width:80px;}
+.ct{padding:2px 3px;font-size:9px;color:#555;white-space:nowrap;width:76px;}
+.cl{padding:2px 4px;font-size:11px;font-weight:700;color:#92400e;white-space:nowrap;background:#fffbeb;}
 .cc{padding:2px 3px;font-weight:700;font-size:11px;white-space:nowrap;width:28px;text-align:center;}
 .cn{padding:2px 4px;font-size:11px;line-height:1.5;color:#111;}
 td{border-bottom:1px solid #eee;vertical-align:top;}
 </style></head><body>
 <div class="hd"><div class="hd-t">📋 ${ev.name}</div><div class="hd-s">${totalPeople}名稼働<br>${new Date().toLocaleDateString('ja-JP')}</div></div>
-<table><tbody>${rows}</tbody></table>
+<table><thead><tr>
+<th style="background:#374151;color:#fff;padding:3px 5px;font-size:10px;text-align:left;white-space:nowrap;">区画</th>
+<th style="background:#374151;color:#fff;padding:3px 5px;font-size:10px;text-align:left;white-space:nowrap;">時間</th>
+<th style="background:#c2410c;color:#fff;padding:3px 5px;font-size:10px;text-align:left;white-space:nowrap;">👑リーダー</th>
+<th style="background:#374151;color:#fff;padding:3px 5px;font-size:10px;text-align:center;white-space:nowrap;">人数</th>
+<th style="background:#374151;color:#fff;padding:3px 5px;font-size:10px;text-align:left;">メンバー</th>
+</tr></thead><tbody>${rows}</tbody></table>
 </body></html>`;
 
   const w=window.open('','_blank');
