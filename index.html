@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.5.5 // 統合管理システム</title>
+<title>COMP v2.5.7 // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -1069,7 +1069,7 @@ header{
     <div class="sync-indicator" id="compSyncWrap"><div class="sync-dot" id="syncDot"></div><span id="syncLabel">--</span></div>
     <button class="btn btn-outline" id="compCsvBtn" onclick="exportCompCSV()" style="font-size:11px;padding:6px 12px">↓ CSV</button>
     <button class="btn btn-primary" id="compAddBtn" onclick="openAddModal()" style="font-size:12px;padding:6px 14px">＋ 追加</button>
-    <button class="btn btn-outline" id="shiftCsvBtn" style="display:none;font-size:11px;padding:6px 12px" onclick="exportShiftTable()">📋 シフト表出力</button>
+    <button class="btn btn-outline" id="shiftCsvBtn" style="display:none;font-size:11px;padding:6px 12px" onclick="exportShiftTable()">📋 シフト表を開く</button>
     <button class="btn btn-primary" id="shiftAutoBtn" style="display:none;font-size:12px;padding:6px 14px" onclick="autoAssign()">⚡ 自動配置</button>
   </div>
 </header>
@@ -2377,7 +2377,7 @@ function renderListTable(){
         chip.className='lchip'+(isLdr?' is-leader':'')+(isOver?' over-cap':'')+(isNG?' is-ng-chip':'');
         if(flag!=='ok'&&!isNG){chip.style.background=WC[flag];chip.style.borderColor=WB[flag];chip.style.color=WT[flag];}
         chip.draggable=true;chip.style.cursor='grab';
-        chip.title=n+(isLdr?' 👑':'')+( isDealer?' 🃏':'')+( isNG?' ⚠️NG':'')+( flag!=='ok'?(' ⚑'+WM[flag]):'')+'\nダブルクリックで詳細表示';
+        chip.title=n+(isLdr?' 👑':'')+( isDealer?' 🃏':'')+( isNG?' ⚠️NG':'')+( flag!=='ok'?(' ⚑'+WM[flag]):'')+'\nクリックで詳細表示';
         const isNewbie=isNewbieByName(n);
         chip.innerHTML=
           (isNG?'<span style="font-size:11px;margin-right:3px;color:#dc2626;" title="NG">⚠️</span>':'')+
@@ -2388,18 +2388,11 @@ function renderListTable(){
           (flag!=='ok'?`<span style="font-size:8px;font-weight:900;background:rgba(0,0,0,.12);border-radius:3px;padding:0 2px;margin-left:3px">${WS[flag]}</span>`:'');
         chip.addEventListener('dragstart',e=>{e.stopPropagation();e.dataTransfer.setData('text/plain','REMOVE:'+s.code+':'+n);e.dataTransfer.effectAllowed='move';chip.style.opacity='0.4';});
         chip.addEventListener('dragend',()=>{chip.style.opacity='';});
-        // draggable=trueはclick/dblclickを潰すため、mousedownで二重検知
-        chip._lastDown=0;
-        chip.addEventListener('mousedown',e=>{
-          if(e.button!==0)return;
-          const now=Date.now();
-          if(now-chip._lastDown<350){
-            e.preventDefault();
-            chip._lastDown=0;
-            const normN=s=>(s||'').trim().replace(/\s+/g,' ').replace(/　/g,' ');
-            const found=companions.find(c=>normN(c.name)===normN(n));
-            if(found){openDetail(found.id);}else{showPersonShiftModal(n);}
-          }else{chip._lastDown=now;}
+        // チップ単体クリックで詳細モーダル（companion検索不要・shiftPeople直結）
+        chip.addEventListener('click',e=>{
+          if(e.defaultPrevented)return;
+          e.stopPropagation();
+          showPersonShiftModal(n);
         });
         mDiv.appendChild(chip);
       });
@@ -3225,116 +3218,53 @@ function exportShiftTable(){
   const asgn=ev.assigned||{};
   const ldrs=ev.leaders||{};
   const days=[...new Set(slots.map(s=>s.date))];
+  const totalPeople=[...new Set(Object.values(asgn).flat())].length;
 
-  const skillBadge=name=>{
-    const c=companions.find(x=>(x.name||'').trim()===name.trim());
-    if(!c)return'';
-    const b=[];
-    if(c.leader)b.push('👑');if(c.mic)b.push('🎤');if(c.dealer)b.push('🃏');if(c.drink)b.push('🍺');
-    return b.length?b.join('')+' ':'';
-  };
-
-  let cards='';
+  let rows='';
   days.forEach(date=>{
     const daySlots=slots.filter(s=>s.date===date);
     const totalA=daySlots.reduce((a,s)=>a+(asgn[s.code]||[]).length,0);
     const totalC=daySlots.reduce((a,s)=>a+s.capacity,0);
-    cards+=`<div class="day-block">
-  <div class="day-header">
-    <span class="day-label">${date}</span>
-    <span class="day-count">${totalA} / ${totalC}名</span>
-  </div>`;
+    rows+=`<tr class="ds"><td colspan="4">${date}　${totalA}/${totalC}</td></tr>`;
     daySlots.forEach(s=>{
       const names=asgn[s.code]||[];
       const ldr=ldrs[s.code]||'';
       const over=names.length>s.capacity;
-      const full=names.length>=s.capacity;
-      const statusClass=over?'over':full?'full':'ok';
-      const statusText=over?'超過':full?'満員':`${names.length}/${s.capacity}`;
-      const memberChips=names.map((n,i)=>{
-        const isLdr=n===ldr, isOver=i>=s.capacity;
-        const cls=isLdr?'chip ldr':isOver?'chip over':'chip';
-        return`<span class="${cls}">${skillBadge(n)}${n}</span>`;
-      }).join('');
-      cards+=`<div class="slot-card">
-  <div class="slot-top">
-    <div class="slot-left">
-      <span class="slot-code">${s.code}</span>
-      <span class="slot-time">${s.time}</span>
-    </div>
-    <span class="status ${statusClass}">${statusText}</span>
-  </div>
-  ${ldr?`<div class="ldr-row">👑 <strong>${ldr}</strong></div>`:''}
-  <div class="members">${memberChips||'<span style="color:#9ca3af;font-size:12px;">未配置</span>'}</div>
-</div>`;
+      const cc=over?'#c00':names.length>=s.capacity?'#1a56db':'#059669';
+      const nl=names.map((n,i)=>{
+        if(n===ldr)return`<b>👑${n}</b>`;
+        if(i>=s.capacity)return`<s style="color:#c00">${n}</s>`;
+        return n;
+      }).join('、');
+      rows+=`<tr><td class="cd">${s.code}</td><td class="ct">${s.time.replace(/~|〜/,'–')}</td><td class="cc" style="color:${cc}">${names.length}/${s.capacity}</td><td class="cn">${nl||'—'}</td></tr>`;
     });
-    cards+='</div>';
   });
 
-  const totalPeople=[...new Set(Object.values(asgn).flat())].length;
-  const totalAssigned=Object.values(asgn).reduce((a,v)=>a+v.length,0);
-
-  const html=`<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>${ev.name} シフト表</title>
+  const html=`<!DOCTYPE html><html lang="ja"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=2">
+<title>${ev.name}</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:#f0f2f5;font-family:-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;font-size:14px;color:#1a1a2e;padding-bottom:32px;}
-.header{background:linear-gradient(135deg,#1e2a5e,#2B5BA8);color:#fff;padding:20px 16px 16px;position:sticky;top:0;z-index:10;}
-.header-title{font-size:18px;font-weight:800;letter-spacing:.02em;margin-bottom:4px;}
-.header-sub{font-size:11px;opacity:.75;}
-.header-stats{display:flex;gap:16px;margin-top:10px;}
-.hs{text-align:center;}
-.hs-n{font-size:20px;font-weight:800;}
-.hs-l{font-size:9px;opacity:.7;letter-spacing:.05em;margin-top:1px;}
-.content{padding:12px;}
-.day-block{margin-bottom:16px;}
-.day-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#1e2a5e;color:#fff;border-radius:10px 10px 0 0;font-weight:700;font-size:13px;}
-.day-count{font-size:11px;opacity:.8;font-weight:400;}
-.slot-card{background:#fff;border-left:3px solid #e5e7eb;margin-bottom:2px;padding:10px 12px;}
-.slot-card:last-child{border-radius:0 0 10px 10px;}
-.slot-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
-.slot-left{display:flex;align-items:center;gap:8px;}
-.slot-code{font-weight:800;color:#2B5BA8;font-size:15px;min-width:28px;}
-.slot-time{font-size:12px;color:#6b7280;}
-.status{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;}
-.status.ok{background:#f0fdf4;color:#16a34a;}
-.status.full{background:#eff6ff;color:#2563eb;}
-.status.over{background:#fef2f2;color:#dc2626;}
-.ldr-row{font-size:13px;color:#92400e;background:#fffbeb;border-radius:6px;padding:4px 8px;margin-bottom:6px;display:inline-block;}
-.members{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;}
-.chip{font-size:12px;padding:4px 9px;border-radius:20px;background:#f3f4f6;color:#374151;border:1px solid #e5e7eb;}
-.chip.ldr{background:#fffbeb;color:#92400e;border-color:#fde68a;font-weight:700;}
-.chip.over{background:#fef2f2;color:#dc2626;border-color:#fca5a5;}
-.footer{text-align:center;font-size:10px;color:#9ca3af;margin-top:20px;}
-</style>
-</head>
-<body>
-<div class="header">
-  <div class="header-title">📋 ${ev.name}</div>
-  <div class="header-sub">出力: ${new Date().toLocaleString('ja-JP')}</div>
-  <div class="header-stats">
-    <div class="hs"><div class="hs-n">${totalPeople}</div><div class="hs-l">稼働人数</div></div>
-    <div class="hs"><div class="hs-n">${totalAssigned}</div><div class="hs-l">配置件数</div></div>
-    <div class="hs"><div class="hs-n">${days.length}</div><div class="hs-l">日数</div></div>
-  </div>
-</div>
-<div class="content">${cards}</div>
-<div class="footer">COMP · ${ev.name} シフト表</div>
-</body>
-</html>`;
+body{font-family:-apple-system,'Hiragino Kaku Gothic ProN',sans-serif;font-size:11px;color:#111;background:#fff;}
+.hd{background:#1e2a5e;color:#fff;padding:6px 8px;display:flex;justify-content:space-between;align-items:center;}
+.hd-t{font-size:13px;font-weight:800;}
+.hd-s{font-size:9px;opacity:.75;text-align:right;}
+table{width:100%;border-collapse:collapse;}
+tr:nth-child(odd) td{background:#f5f6ff;}
+.ds td{background:#1e2a5e!important;color:#fff;font-weight:700;font-size:10px;padding:3px 5px;}
+.cd{padding:2px 4px;font-weight:800;color:#1a4db8;font-size:12px;white-space:nowrap;width:28px;}
+.ct{padding:2px 3px;font-size:9px;color:#555;white-space:nowrap;width:80px;}
+.cc{padding:2px 3px;font-weight:700;font-size:11px;white-space:nowrap;width:28px;text-align:center;}
+.cn{padding:2px 4px;font-size:11px;line-height:1.5;color:#111;}
+td{border-bottom:1px solid #eee;vertical-align:top;}
+</style></head><body>
+<div class="hd"><div class="hd-t">📋 ${ev.name}</div><div class="hd-s">${totalPeople}名稼働<br>${new Date().toLocaleDateString('ja-JP')}</div></div>
+<table><tbody>${rows}</tbody></table>
+</body></html>`;
 
-  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;
-  a.download=`${ev.name}_シフト表.html`;
-  a.click();
-  URL.revokeObjectURL(url);
-  showToast('シフト表を出力しました（LINEで送信できます）','success');
+  const w=window.open('','_blank');
+  if(w){w.document.write(html);w.document.close();}
+  else{showToast('ポップアップがブロックされました','error');}
 }
 
 // ── PersonModal ──
