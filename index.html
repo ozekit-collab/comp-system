@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.6.13 // 統合管理システム</title>
+<title>COMP v2.6.15 // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -575,6 +575,7 @@ header{
 .card-tag.tag-drink{background:#dbeafe;border-color:#93c5fd;}
 .card-tag.tag-tattoo{background:#fee2e2;border-color:#fca5a5;}
 .card-tag.tag-newbie{background:#dcfce7;border-color:#86efac;}
+.card-tag.tag-minor{background:#fef9c3;border-color:#fde047;}
 .tag-leader{background:#fef3c7;border-color:#fde68a;}
 .tag-mic{background:#ede9fe;border-color:#ddd6fe;}
 .tag-svc{background:#fce7f3;border-color:#fbcfe8;}
@@ -1116,11 +1117,12 @@ header{
         <div class="sidebar-title">Skills</div>
         <div class="skill-filters">
           <button class="skill-btn" data-skill="mic" onclick="toggleSkillFilter('mic',this)">🎤 マイク可</button>
-          <button class="skill-btn" data-skill="service" onclick="toggleSkillFilter('service',this)">✨ サービス</button>
+          <button class="skill-btn" data-skill="service" onclick="toggleSkillFilter('service',this)"><img src="https://zbtfhxfimmvqzwhmqmoj.supabase.co/storage/v1/object/public/logos/waiter.jpg" style="width:13px;height:13px;object-fit:contain;vertical-align:middle;"> サービス</button>
           <button class="skill-btn" data-skill="leader" onclick="toggleSkillFilter('leader',this)">👑 リーダー</button>
           <button class="skill-btn" data-skill="dealer" onclick="toggleSkillFilter('dealer',this)">🃏 ディーラー</button>
           <button class="skill-btn" data-skill="ggpl" onclick="toggleSkillFilter('ggpl',this)" style="background:#fffbeb;border-color:#f5c800;color:#92650a;font-weight:700;">GGPL</button>
           <button class="skill-btn" data-skill="kklp" onclick="toggleSkillFilter('kklp',this)" style="background:#f0fdf4;border-color:#2ea84a;color:#1a6e2e;font-weight:700;">KKLP</button>
+          <button class="skill-btn" data-skill="minor" onclick="toggleSkillFilter('minor',this)"><img src="https://zbtfhxfimmvqzwhmqmoj.supabase.co/storage/v1/object/public/logos/U-20.png" style="width:24px;height:13px;object-fit:contain;vertical-align:middle;"></button>
         </div>
         <button class="skill-clear hidden" id="skillClear" onclick="clearSkillFilters()">✕ フィルター解除</button>
       </div>
@@ -1131,8 +1133,9 @@ header{
         <span class="legend-title">スキル凡例</span>
         <span class="skill-legend-item">👑 リーダー</span>
         <span class="skill-legend-item">🎤 マイク可</span>
-        <span class="skill-legend-item">✨ サービス</span>
+        <span class="skill-legend-item"><img src="https://zbtfhxfimmvqzwhmqmoj.supabase.co/storage/v1/object/public/logos/waiter.jpg" style="width:14px;height:14px;object-fit:contain;vertical-align:middle;"> サービス</span>
         <span class="skill-legend-item">🃏 ディーラー</span>
+        <span class="skill-legend-item"><img src="https://zbtfhxfimmvqzwhmqmoj.supabase.co/storage/v1/object/public/logos/U-20.png" style="width:24px;height:14px;object-fit:contain;vertical-align:middle;"> 未成年</span>
         <span class="skill-legend-item" style="margin-left:auto;color:var(--text-muted);font-size:10px">SNSアイコンをタップ → プロフィールへ</span>
       </div>
       <div class="content-header">
@@ -1352,7 +1355,7 @@ header{
       <div class="form-section-title">⚙️ スキル</div>
       <div class="toggle-row">
         <label class="toggle-item"><input type="checkbox" id="fmic"><div class="toggle-box">✓</div><span class="toggle-label">🎤 マイク可</span></label>
-        <label class="toggle-item"><input type="checkbox" id="fservice"><div class="toggle-box">✓</div><span class="toggle-label">✨ サービス</span></label>
+        <label class="toggle-item"><input type="checkbox" id="fservice"><div class="toggle-box">✓</div><span class="toggle-label"><img src="https://zbtfhxfimmvqzwhmqmoj.supabase.co/storage/v1/object/public/logos/waiter.jpg" style="width:13px;height:13px;object-fit:contain;vertical-align:middle;"> サービス</span></label>
         <label class="toggle-item"><input type="checkbox" id="fleader"><div class="toggle-box">✓</div><span class="toggle-label">👑 リーダー</span></label>
         <label class="toggle-item"><input type="checkbox" id="fdealer"><div class="toggle-box">✓</div><span class="toggle-label">🃏 ディーラー</span></label>
         <label class="toggle-item"><input type="checkbox" id="fdrink"><div class="toggle-box">✓</div><span class="toggle-label">🍺 飲酒可</span></label>
@@ -1360,6 +1363,7 @@ header{
         <label class="toggle-item"><input type="checkbox" id="fnewbie"><div class="toggle-box">✓</div><span class="toggle-label">🔰 新人</span></label>
         <label class="toggle-item"><input type="checkbox" id="fggpl"><div class="toggle-box" style="background:#f5c800;border-color:#b8900a;">✓</div><span class="toggle-label" style="font-weight:700;color:#92650a;">GGPL所属</span></label>
         <label class="toggle-item"><input type="checkbox" id="fkklp"><div class="toggle-box" style="background:#2ea84a;border-color:#1d7a32;">✓</div><span class="toggle-label" style="font-weight:700;color:#1a6e2e;">KKLP所属</span></label>
+        <label class="toggle-item"><input type="checkbox" id="fminor"><div class="toggle-box" style="background:#fde68a;border-color:#f59e0b;">✓</div><span class="toggle-label" style="font-weight:700;color:#92400e;">未成年(U-20)</span></label>
       </div>
       <div class="form-section-title">👗 衣装制限</div>
       <div class="form-group full"><input type="text" class="form-input" id="fcostume" placeholder="例：SPADIE衣装不可、スカート不可 など（空白でOK）"></div>
@@ -1487,7 +1491,7 @@ function rowToLocal(r){
     ttAccount:r.tt_account||'',ttFollowers:r.tt_followers||'',
     agency:r.agency||'',notes:r.notes||'',
     mic:!!r.mic,service:!!r.service,leader:!!r.leader,dealer:!!r.dealer,drink:!!r.drink,tattoo:!!r.tattoo,newbie:!!r.newbie,
-    ggpl:!!r.ggpl,kklp:!!r.kklp,
+    ggpl:!!r.ggpl,kklp:!!r.kklp,minor:!!r.minor,
     isNG:!!r.is_ng,
     photos:getPhotos(r),
     sortOrder:r.sort_order||0,
@@ -1504,7 +1508,7 @@ function localToRow(c){
     tt_account:c.ttAccount||null,tt_followers:c.ttFollowers||null,
     agency:c.agency||null,notes:c.notes||null,
     mic:!!c.mic,service:!!c.service,leader:!!c.leader,dealer:!!c.dealer,drink:!!c.drink,tattoo:!!c.tattoo,newbie:!!c.newbie,
-    ggpl:!!c.ggpl,kklp:!!c.kklp,
+    ggpl:!!c.ggpl,kklp:!!c.kklp,minor:!!c.minor,
     is_ng:!!c.isNG,
     photo:photos?photos[0]:null,
     photos:photos,
@@ -1557,6 +1561,7 @@ function filterCompanions(){
     if(activeSkills.has('dealer')&&!c.dealer)return false;
     if(activeSkills.has('ggpl')&&!c.ggpl)return false;
     if(activeSkills.has('kklp')&&!c.kklp)return false;
+    if(activeSkills.has('minor')&&!c.minor)return false;
     if(ngFilter==='active'&&c.isNG)return false;
     if(ngFilter==='ng-only'&&!c.isNG)return false;
     return true;
@@ -1630,7 +1635,6 @@ function renderGrid(list){
     card.innerHTML=`
       ${c.isNG?'<div class="ng-banner">NG</div>':''}
       <div class="drag-handle">⠿</div>
-      ${(c.ggpl||c.kklp)?`<div class="affil-badge">${c.ggpl?'<span class="badge-ggpl"><img src="https://zbtfhxfimmvqzwhmqmoj.supabase.co/storage/v1/object/public/logos/ggpl.jpg" alt="GGPL"></span>':''}${c.kklp?'<span class="badge-kklp"><img src="https://zbtfhxfimmvqzwhmqmoj.supabase.co/storage/v1/object/public/logos/kklp.png" alt="KKLP"></span>':''}</div>`:''}
       <div class="card-photo">
         ${avatarHTML}${imgHTML}${dotsHTML}
         ${(c.xAccount||c.igAccount||c.ttAccount)?`<div class="card-sns-bar" onclick="event.stopPropagation()">
@@ -1653,11 +1657,14 @@ function renderGrid(list){
           <div class="card-tags">
             ${c.leader?'<span class="card-tag tag-leader" title="リーダー">👑</span>':''}
             ${c.mic?'<span class="card-tag tag-mic" title="マイク可">🎤</span>':''}
-            ${c.service?'<span class="card-tag tag-svc" title="サービス">✨</span>':''}
+            ${c.service?'<span class="card-tag tag-svc" title="サービス"><img src="https://zbtfhxfimmvqzwhmqmoj.supabase.co/storage/v1/object/public/logos/waiter.jpg" style="width:14px;height:14px;object-fit:contain;vertical-align:middle;"></span>':''}
             ${c.dealer?'<span class="card-tag tag-dealer" title="ディーラー">🃏</span>':''}
             ${c.drink?'<span class="card-tag tag-drink" title="飲酒可">🍺</span>':''}
             ${c.tattoo?'<span class="card-tag tag-tattoo" title="傷・タトゥーあり">⚠️</span>':''}
             ${c.newbie?'<span class="card-tag tag-newbie" title="新人">🔰</span>':''}
+            ${c.minor?'<span class="card-tag tag-minor" title="未成年"><img src="https://zbtfhxfimmvqzwhmqmoj.supabase.co/storage/v1/object/public/logos/U-20.png" style="width:20px;height:14px;object-fit:contain;vertical-align:middle;"></span>':''}
+            ${c.ggpl?'<span class="card-tag" style="padding:1px 2px;background:transparent;border:none;" title="GGPL所属"><img src="https://zbtfhxfimmvqzwhmqmoj.supabase.co/storage/v1/object/public/logos/ggpl.jpg" style="width:18px;height:18px;object-fit:contain;vertical-align:middle;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))"></span>':''}
+            ${c.kklp?'<span class="card-tag" style="padding:1px 2px;background:transparent;border:none;" title="KKLP所属"><img src="https://zbtfhxfimmvqzwhmqmoj.supabase.co/storage/v1/object/public/logos/kklp.png" style="width:18px;height:18px;object-fit:contain;vertical-align:middle;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))"></span>':''}
           </div>
         </div>
       </div>`;
@@ -1890,7 +1897,7 @@ function closeModalOnOverlay(e){if(e.target===document.getElementById('formModal
 
 function clearForm(){
   ['fname','fage','fheight','fprice','fxAccount','fxFollowers','figAccount','figFollowers','fttAccount','fttFollowers','fagency','fnotes'].forEach(id=>document.getElementById(id).value='');
-  ['fmic','fservice','fleader','fdealer','fdrink','ftattoo','fnewbie','fggpl','fkklp'].forEach(id=>document.getElementById(id).checked=false);
+  ['fmic','fservice','fleader','fdealer','fdrink','ftattoo','fnewbie','fggpl','fkklp','fminor'].forEach(id=>document.getElementById(id).checked=false);
   const _aw=document.getElementById('aliasWrap');if(_aw)_aw.innerHTML='';
   }
 function fillForm(c){
@@ -1922,6 +1929,7 @@ function fillForm(c){
   const _fnb=document.getElementById('fnewbie');if(_fnb)_fnb.checked=!!c.newbie;
   const _fgg=document.getElementById('fggpl');if(_fgg)_fgg.checked=!!c.ggpl;
   const _fkk=document.getElementById('fkklp');if(_fkk)_fkk.checked=!!c.kklp;
+  const _fmi=document.getElementById('fminor');if(_fmi)_fmi.checked=!!c.minor;
 }
 
 async function saveCompanion(){
@@ -1952,6 +1960,7 @@ async function saveCompanion(){
     newbie:document.getElementById('fnewbie')?.checked||false,
     ggpl:document.getElementById('fggpl')?.checked||false,
     kklp:document.getElementById('fkklp')?.checked||false,
+    minor:document.getElementById('fminor')?.checked||false,
     isNG:isNGForm,
     photos:[...currentPhotos],
     sortOrder:editingId?(companions.find(c=>c.id===editingId)?.sortOrder||0):companions.length,
