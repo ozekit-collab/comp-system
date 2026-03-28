@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.6.7 // 統合管理システム</title>
+<title>COMP v2.6.13 // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -579,6 +579,12 @@ header{
 .tag-mic{background:#ede9fe;border-color:#ddd6fe;}
 .tag-svc{background:#fce7f3;border-color:#fbcfe8;}
 .tag-dealer{background:#fff7ed;border-color:#fed7aa;}
+/* 所属バッジ（カード右上） */
+.affil-badge{position:absolute;top:6px;right:6px;z-index:5;display:flex;flex-direction:column;gap:3px;pointer-events:none;}
+.affil-badge span{display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;letter-spacing:.5px;border-radius:4px;padding:2px 5px;line-height:1.2;box-shadow:0 1px 4px rgba(0,0,0,.25);}
+.badge-ggpl{background:none;border:none;padding:0;}
+.badge-kklp{background:none;border:none;padding:0;}
+.badge-ggpl img,.badge-kklp img{width:28px;height:28px;object-fit:contain;filter:drop-shadow(0 1px 3px rgba(0,0,0,.4));}
 
 /* ── TOAST ── */
 .toast{
@@ -1113,6 +1119,8 @@ header{
           <button class="skill-btn" data-skill="service" onclick="toggleSkillFilter('service',this)">✨ サービス</button>
           <button class="skill-btn" data-skill="leader" onclick="toggleSkillFilter('leader',this)">👑 リーダー</button>
           <button class="skill-btn" data-skill="dealer" onclick="toggleSkillFilter('dealer',this)">🃏 ディーラー</button>
+          <button class="skill-btn" data-skill="ggpl" onclick="toggleSkillFilter('ggpl',this)" style="background:#fffbeb;border-color:#f5c800;color:#92650a;font-weight:700;">GGPL</button>
+          <button class="skill-btn" data-skill="kklp" onclick="toggleSkillFilter('kklp',this)" style="background:#f0fdf4;border-color:#2ea84a;color:#1a6e2e;font-weight:700;">KKLP</button>
         </div>
         <button class="skill-clear hidden" id="skillClear" onclick="clearSkillFilters()">✕ フィルター解除</button>
       </div>
@@ -1350,6 +1358,8 @@ header{
         <label class="toggle-item"><input type="checkbox" id="fdrink"><div class="toggle-box">✓</div><span class="toggle-label">🍺 飲酒可</span></label>
         <label class="toggle-item"><input type="checkbox" id="ftattoo"><div class="toggle-box">✓</div><span class="toggle-label">⚠️ 傷・タトゥー</span></label>
         <label class="toggle-item"><input type="checkbox" id="fnewbie"><div class="toggle-box">✓</div><span class="toggle-label">🔰 新人</span></label>
+        <label class="toggle-item"><input type="checkbox" id="fggpl"><div class="toggle-box" style="background:#f5c800;border-color:#b8900a;">✓</div><span class="toggle-label" style="font-weight:700;color:#92650a;">GGPL所属</span></label>
+        <label class="toggle-item"><input type="checkbox" id="fkklp"><div class="toggle-box" style="background:#2ea84a;border-color:#1d7a32;">✓</div><span class="toggle-label" style="font-weight:700;color:#1a6e2e;">KKLP所属</span></label>
       </div>
       <div class="form-section-title">👗 衣装制限</div>
       <div class="form-group full"><input type="text" class="form-input" id="fcostume" placeholder="例：SPADIE衣装不可、スカート不可 など（空白でOK）"></div>
@@ -1477,6 +1487,7 @@ function rowToLocal(r){
     ttAccount:r.tt_account||'',ttFollowers:r.tt_followers||'',
     agency:r.agency||'',notes:r.notes||'',
     mic:!!r.mic,service:!!r.service,leader:!!r.leader,dealer:!!r.dealer,drink:!!r.drink,tattoo:!!r.tattoo,newbie:!!r.newbie,
+    ggpl:!!r.ggpl,kklp:!!r.kklp,
     isNG:!!r.is_ng,
     photos:getPhotos(r),
     sortOrder:r.sort_order||0,
@@ -1493,6 +1504,7 @@ function localToRow(c){
     tt_account:c.ttAccount||null,tt_followers:c.ttFollowers||null,
     agency:c.agency||null,notes:c.notes||null,
     mic:!!c.mic,service:!!c.service,leader:!!c.leader,dealer:!!c.dealer,drink:!!c.drink,tattoo:!!c.tattoo,newbie:!!c.newbie,
+    ggpl:!!c.ggpl,kklp:!!c.kklp,
     is_ng:!!c.isNG,
     photo:photos?photos[0]:null,
     photos:photos,
@@ -1543,6 +1555,8 @@ function filterCompanions(){
     if(activeSkills.has('service')&&!c.service)return false;
     if(activeSkills.has('leader')&&!c.leader)return false;
     if(activeSkills.has('dealer')&&!c.dealer)return false;
+    if(activeSkills.has('ggpl')&&!c.ggpl)return false;
+    if(activeSkills.has('kklp')&&!c.kklp)return false;
     if(ngFilter==='active'&&c.isNG)return false;
     if(ngFilter==='ng-only'&&!c.isNG)return false;
     return true;
@@ -1616,6 +1630,7 @@ function renderGrid(list){
     card.innerHTML=`
       ${c.isNG?'<div class="ng-banner">NG</div>':''}
       <div class="drag-handle">⠿</div>
+      ${(c.ggpl||c.kklp)?`<div class="affil-badge">${c.ggpl?'<span class="badge-ggpl"><img src="https://zbtfhxfimmvqzwhmqmoj.supabase.co/storage/v1/object/public/logos/ggpl.jpg" alt="GGPL"></span>':''}${c.kklp?'<span class="badge-kklp"><img src="https://zbtfhxfimmvqzwhmqmoj.supabase.co/storage/v1/object/public/logos/kklp.png" alt="KKLP"></span>':''}</div>`:''}
       <div class="card-photo">
         ${avatarHTML}${imgHTML}${dotsHTML}
         ${(c.xAccount||c.igAccount||c.ttAccount)?`<div class="card-sns-bar" onclick="event.stopPropagation()">
@@ -1875,7 +1890,7 @@ function closeModalOnOverlay(e){if(e.target===document.getElementById('formModal
 
 function clearForm(){
   ['fname','fage','fheight','fprice','fxAccount','fxFollowers','figAccount','figFollowers','fttAccount','fttFollowers','fagency','fnotes'].forEach(id=>document.getElementById(id).value='');
-  ['fmic','fservice','fleader','fdealer','fdrink','ftattoo','fnewbie'].forEach(id=>document.getElementById(id).checked=false);
+  ['fmic','fservice','fleader','fdealer','fdrink','ftattoo','fnewbie','fggpl','fkklp'].forEach(id=>document.getElementById(id).checked=false);
   const _aw=document.getElementById('aliasWrap');if(_aw)_aw.innerHTML='';
   }
 function fillForm(c){
@@ -1905,6 +1920,8 @@ function fillForm(c){
   const _fdr=document.getElementById('fdrink');if(_fdr)_fdr.checked=!!c.drink;
   const _ftt=document.getElementById('ftattoo');if(_ftt)_ftt.checked=!!c.tattoo;
   const _fnb=document.getElementById('fnewbie');if(_fnb)_fnb.checked=!!c.newbie;
+  const _fgg=document.getElementById('fggpl');if(_fgg)_fgg.checked=!!c.ggpl;
+  const _fkk=document.getElementById('fkklp');if(_fkk)_fkk.checked=!!c.kklp;
 }
 
 async function saveCompanion(){
@@ -1933,6 +1950,8 @@ async function saveCompanion(){
     drink:document.getElementById('fdrink')?.checked||false,
     tattoo:document.getElementById('ftattoo')?.checked||false,
     newbie:document.getElementById('fnewbie')?.checked||false,
+    ggpl:document.getElementById('fggpl')?.checked||false,
+    kklp:document.getElementById('fkklp')?.checked||false,
     isNG:isNGForm,
     photos:[...currentPhotos],
     sortOrder:editingId?(companions.find(c=>c.id===editingId)?.sortOrder||0):companions.length,
@@ -1995,8 +2014,7 @@ function openDetail(id){
   document.getElementById('detailSNS').innerHTML=sns||'<div style="color:var(--text-muted);font-size:12px;font-family:\'DM Mono\',monospace">—</div>';
   document.getElementById('detailInfo').innerHTML=`
     <div class="detail-row"><span class="detail-row-label">時給</span><span class="detail-row-value" style="color:var(--accent);font-family:'DM Mono',monospace">${c.price||'—'}</span></div>
-    
-    
+    ${(c.ggpl||c.kklp)?`<div class="detail-row"><span class="detail-row-label">所属</span><span>${c.ggpl?'<span style="background:#f5c800;color:#1a0a00;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:800;margin-right:4px;">GGPL</span>':''}${c.kklp?'<span style="background:#2ea84a;color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:800;">KKLP</span>':''}</span></div>`:''}
     <div class="detail-row"><span class="detail-row-label">マイク</span><span class="${c.mic?'bool-yes':'bool-no'}">${c.mic?'可':'不可'}</span></div>
     <div class="detail-row"><span class="detail-row-label">サービス</span><span class="${c.service?'bool-yes':'bool-no'}">${c.service?'◎':'×'}</span></div>
     <div class="detail-row"><span class="detail-row-label">リーダー</span><span class="${c.leader?'bool-yes':'bool-no'}">${c.leader?'経験あり':'なし'}</span></div>
@@ -2313,23 +2331,16 @@ function renderListTable(){
     if(daySlotCount>=4)return'c4';
     if(daySlotCount===3)return'c3';
 
-    // ── 前日の深夜枠（22:30以降開始）→ 翌日の早朝/昼枠チェック（直前日のみ）──
-    const myIdx=allMy.findIndex(ss=>ss.code===slot.code);
-    if(myIdx>0){
-      const prevSlot=allMy[myIdx-1];
-      if(prevSlot.date!==slot.date){
-        // 前のスロットが22:30以降開始かどうか（深夜勤務）
-        const prevStartH=parseInt((prevSlot.time.match(/(\d+):/)||['','0'])[1]);
-        const isLateNight=prevStartH>=22;
-        if(isLateNight){
-          // 「直前日」かつ「翌日スロットが早朝〜昼（12時以前）」のみ対象
-          const toDay=d=>{const m=d.match(/(\d+)\/(\d+)/);return m?parseInt(m[1])*31+parseInt(m[2]):0;};
-          const dayDiff=toDay(slot.date)-toDay(prevSlot.date);
-          const thisStartH=parseInt((slot.time.match(/(\d+):/)||['','13'])[1]);
-          if(dayDiff===1&&thisStartH<13){return'early';}
-        }
-      }
-    }
+    // ── 翌朝フラグ: 前のスロットの終了が早朝(〜10時)かつ8時間以内に次の枠が始まる ──
+    const thisStart=absM(slot,'start');
+    const hasEarlyEndClose=allMy.some(ss=>{
+      if(ss.code===slot.code)return false;
+      const ssEnd=absM(ss,'end');
+      const gap=thisStart-ssEnd;
+      const ssEndMod=ssEnd%1440; // 実効終了時刻(分)
+      return gap>0&&gap<8*60&&ssEndMod<10*60; // 終了が10時前かつ8時間以内
+    });
+    if(hasEarlyEndClose)return'early';
 
     return'ok';
   }
