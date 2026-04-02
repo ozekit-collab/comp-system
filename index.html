@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.6.15 // 統合管理システム</title>
+<title>COMP v2.6.16 // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -2094,25 +2094,25 @@ db.channel('companions-rt2').on('postgres_changes',{event:'*',schema:'public',ta
 
 const DEFAULT_EVENTS=[
   {id:'sengoku2026spring',name:'戦国2026 春の陣',slots:[
-    {code:"A1",date:"3/18(水)",time:"18:00~22:30",capacity:10},{code:"A2",date:"3/18(水)",time:"22:30~5:00",capacity:10},{code:"A3",date:"3/18(水)",time:"5:00~9:00",capacity:5},
-    {code:"B1",date:"3/19(木)",time:"10:00~16:30",capacity:12},{code:"B2",date:"3/19(木)",time:"16:00~22:30",capacity:12},{code:"B3",date:"3/19(木)",time:"22:30~5:00",capacity:12},{code:"B4",date:"3/19(木)",time:"5:00~9:00",capacity:5},
-    {code:"C1",date:"3/20(金)",time:"10:00~16:30",capacity:12},{code:"C2",date:"3/20(金)",time:"16:00~22:30",capacity:12},{code:"C3",date:"3/20(金)",time:"22:30~5:00",capacity:12},{code:"C4",date:"3/20(金)",time:"5:00~9:00",capacity:5},
-    {code:"D1",date:"3/21(土)",time:"10:00~16:30",capacity:12},{code:"D2",date:"3/21(土)",time:"16:00~22:30",capacity:12},{code:"D3",date:"3/21(土)",time:"22:30~5:00",capacity:12},{code:"D4",date:"3/21(土)",time:"5:00~9:00",capacity:5},
+    {code:"A1",date:"3/18(水)",time:"18:00~22:30",capacity:10},{code:"A2",date:"3/18(水)",time:"22:00~5:00",capacity:10},{code:"A3",date:"3/18(水)",time:"5:00~9:00",capacity:5},
+    {code:"B1",date:"3/19(木)",time:"10:00~16:30",capacity:12},{code:"B2",date:"3/19(木)",time:"16:00~22:30",capacity:12},{code:"B3",date:"3/19(木)",time:"22:00~5:00",capacity:12},{code:"B4",date:"3/19(木)",time:"5:00~9:00",capacity:5},
+    {code:"C1",date:"3/20(金)",time:"10:00~16:30",capacity:12},{code:"C2",date:"3/20(金)",time:"16:00~22:30",capacity:12},{code:"C3",date:"3/20(金)",time:"22:00~5:00",capacity:12},{code:"C4",date:"3/20(金)",time:"5:00~9:00",capacity:5},
+    {code:"D1",date:"3/21(土)",time:"10:00~16:30",capacity:12},{code:"D2",date:"3/21(土)",time:"16:00~22:30",capacity:12},{code:"D3",date:"3/21(土)",time:"22:00~5:00",capacity:12},{code:"D4",date:"3/21(土)",time:"5:00~9:00",capacity:5},
     {code:"E1",date:"3/22(日)",time:"9:00~16:30",capacity:12},{code:"E2",date:"3/22(日)",time:"16:00~22:30",capacity:12},
   ],people:[],assigned:{},leaders:{}},
   {id:'joptgf2026',name:'JOPTGF 2026',slots:[
-    {code:"A1",date:"4/24(金)",time:"10:00~16:30",capacity:12},{code:"A2",date:"4/24(金)",time:"16:00~22:30",capacity:12},{code:"A3",date:"4/24(金)",time:"22:30~5:00",capacity:12},{code:"A4",date:"4/24(金)",time:"5:00~9:00",capacity:5},
-    {code:"B1",date:"4/25(土)",time:"10:00~16:30",capacity:12},{code:"B2",date:"4/25(土)",time:"16:00~22:30",capacity:12},{code:"B3",date:"4/25(土)",time:"22:30~5:00",capacity:12},{code:"B4",date:"4/25(土)",time:"5:00~9:00",capacity:5},
-    {code:"C1",date:"4/26(日)",time:"10:00~16:30",capacity:12},{code:"C2",date:"4/26(日)",time:"16:00~22:30",capacity:12},{code:"C3",date:"4/26(日)",time:"22:30~5:00",capacity:12},{code:"C4",date:"4/26(日)",time:"5:00~9:00",capacity:5},
-    {code:"D1",date:"4/27(月)",time:"10:00~16:30",capacity:12},{code:"D2",date:"4/27(月)",time:"16:00~22:30",capacity:12},{code:"D3",date:"4/27(月)",time:"22:30~5:00",capacity:12},{code:"D4",date:"4/27(月)",time:"5:00~9:00",capacity:5},
-    {code:"E1",date:"4/28(火)",time:"10:00~16:30",capacity:12},{code:"E2",date:"4/28(火)",time:"16:00~22:30",capacity:12},{code:"E3",date:"4/28(火)",time:"22:30~5:00",capacity:12},{code:"E4",date:"4/28(火)",time:"5:00~9:00",capacity:5},
-    {code:"F1",date:"4/29(水)",time:"10:00~16:30",capacity:12},{code:"F2",date:"4/29(水)",time:"16:00~22:30",capacity:12},{code:"F3",date:"4/29(水)",time:"22:30~5:00",capacity:12},{code:"F4",date:"4/29(水)",time:"5:00~9:00",capacity:5},
-    {code:"G1",date:"4/30(木)",time:"10:00~16:30",capacity:12},{code:"G2",date:"4/30(木)",time:"16:00~22:30",capacity:12},{code:"G3",date:"4/30(木)",time:"22:30~5:00",capacity:12},{code:"G4",date:"4/30(木)",time:"5:00~9:00",capacity:5},
-    {code:"H1",date:"5/1(金)",time:"10:00~16:30",capacity:12},{code:"H2",date:"5/1(金)",time:"16:00~22:30",capacity:12},{code:"H3",date:"5/1(金)",time:"22:30~5:00",capacity:12},{code:"H4",date:"5/1(金)",time:"5:00~9:00",capacity:5},
-    {code:"I1",date:"5/2(土)",time:"10:00~16:30",capacity:12},{code:"I2",date:"5/2(土)",time:"16:00~22:30",capacity:12},{code:"I3",date:"5/2(土)",time:"22:30~5:00",capacity:12},{code:"I4",date:"5/2(土)",time:"5:00~9:00",capacity:5},
-    {code:"J1",date:"5/3(日)",time:"10:00~16:30",capacity:12},{code:"J2",date:"5/3(日)",time:"16:00~22:30",capacity:12},{code:"J3",date:"5/3(日)",time:"22:30~5:00",capacity:12},{code:"J4",date:"5/3(日)",time:"5:00~9:00",capacity:5},
-    {code:"K1",date:"5/4(月)",time:"10:00~16:30",capacity:12},{code:"K2",date:"5/4(月)",time:"16:00~22:30",capacity:12},{code:"K3",date:"5/4(月)",time:"22:30~5:00",capacity:12},{code:"K4",date:"5/4(月)",time:"5:00~9:00",capacity:5},
-    {code:"L1",date:"5/5(火)",time:"10:00~16:30",capacity:12},{code:"L2",date:"5/5(火)",time:"16:00~22:30",capacity:12},{code:"L3",date:"5/5(火)",time:"22:30~5:00",capacity:12},{code:"L4",date:"5/5(火)",time:"5:00~9:00",capacity:5},
+    {code:"A1",date:"4/24(金)",time:"10:00~16:30",capacity:12},{code:"A2",date:"4/24(金)",time:"16:00~22:30",capacity:12},{code:"A3",date:"4/24(金)",time:"22:00~5:00",capacity:12},{code:"A4",date:"4/24(金)",time:"5:00~9:00",capacity:5},
+    {code:"B1",date:"4/25(土)",time:"10:00~16:30",capacity:12},{code:"B2",date:"4/25(土)",time:"16:00~22:30",capacity:12},{code:"B3",date:"4/25(土)",time:"22:00~5:00",capacity:12},{code:"B4",date:"4/25(土)",time:"5:00~9:00",capacity:5},
+    {code:"C1",date:"4/26(日)",time:"10:00~16:30",capacity:12},{code:"C2",date:"4/26(日)",time:"16:00~22:30",capacity:12},{code:"C3",date:"4/26(日)",time:"22:00~5:00",capacity:12},{code:"C4",date:"4/26(日)",time:"5:00~9:00",capacity:5},
+    {code:"D1",date:"4/27(月)",time:"10:00~16:30",capacity:12},{code:"D2",date:"4/27(月)",time:"16:00~22:30",capacity:12},{code:"D3",date:"4/27(月)",time:"22:00~5:00",capacity:12},{code:"D4",date:"4/27(月)",time:"5:00~9:00",capacity:5},
+    {code:"E1",date:"4/28(火)",time:"10:00~16:30",capacity:12},{code:"E2",date:"4/28(火)",time:"16:00~22:30",capacity:12},{code:"E3",date:"4/28(火)",time:"22:00~5:00",capacity:12},{code:"E4",date:"4/28(火)",time:"5:00~9:00",capacity:5},
+    {code:"F1",date:"4/29(水)",time:"10:00~16:30",capacity:12},{code:"F2",date:"4/29(水)",time:"16:00~22:30",capacity:12},{code:"F3",date:"4/29(水)",time:"22:00~5:00",capacity:12},{code:"F4",date:"4/29(水)",time:"5:00~9:00",capacity:5},
+    {code:"G1",date:"4/30(木)",time:"10:00~16:30",capacity:12},{code:"G2",date:"4/30(木)",time:"16:00~22:30",capacity:12},{code:"G3",date:"4/30(木)",time:"22:00~5:00",capacity:12},{code:"G4",date:"4/30(木)",time:"5:00~9:00",capacity:5},
+    {code:"H1",date:"5/1(金)",time:"10:00~16:30",capacity:12},{code:"H2",date:"5/1(金)",time:"16:00~22:30",capacity:12},{code:"H3",date:"5/1(金)",time:"22:00~5:00",capacity:12},{code:"H4",date:"5/1(金)",time:"5:00~9:00",capacity:5},
+    {code:"I1",date:"5/2(土)",time:"10:00~16:30",capacity:12},{code:"I2",date:"5/2(土)",time:"16:00~22:30",capacity:12},{code:"I3",date:"5/2(土)",time:"22:00~5:00",capacity:12},{code:"I4",date:"5/2(土)",time:"5:00~9:00",capacity:5},
+    {code:"J1",date:"5/3(日)",time:"10:00~16:30",capacity:12},{code:"J2",date:"5/3(日)",time:"16:00~22:30",capacity:12},{code:"J3",date:"5/3(日)",time:"22:00~5:00",capacity:12},{code:"J4",date:"5/3(日)",time:"5:00~9:00",capacity:5},
+    {code:"K1",date:"5/4(月)",time:"10:00~16:30",capacity:12},{code:"K2",date:"5/4(月)",time:"16:00~22:30",capacity:12},{code:"K3",date:"5/4(月)",time:"22:00~5:00",capacity:12},{code:"K4",date:"5/4(月)",time:"5:00~9:00",capacity:5},
+    {code:"L1",date:"5/5(火)",time:"10:00~16:30",capacity:12},{code:"L2",date:"5/5(火)",time:"16:00~22:30",capacity:12},{code:"L3",date:"5/5(火)",time:"22:00~5:00",capacity:12},{code:"L4",date:"5/5(火)",time:"5:00~9:00",capacity:5},
     {code:"M1",date:"5/6(水)",time:"10:00~16:30",capacity:12},{code:"M2",date:"5/6(水)",time:"16:00~22:30",capacity:12},
   ],people:[],assigned:{},leaders:{}},
 ];
