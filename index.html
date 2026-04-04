@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.6.16 // 統合管理システム</title>
+<title>COMP v2.6.18 // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -2101,12 +2101,12 @@ const DEFAULT_EVENTS=[
     {code:"E1",date:"3/22(日)",time:"9:00~16:30",capacity:12},{code:"E2",date:"3/22(日)",time:"16:00~22:30",capacity:12},
   ],people:[],assigned:{},leaders:{}},
   {id:'joptgf2026',name:'JOPTGF 2026',slots:[
-    {code:"A1",date:"4/24(金)",time:"10:00~16:30",capacity:12},{code:"A2",date:"4/24(金)",time:"16:00~22:30",capacity:12},{code:"A3",date:"4/24(金)",time:"22:00~5:00",capacity:12},{code:"A4",date:"4/24(金)",time:"5:00~9:00",capacity:5},
+    {code:"A1",date:"4/24(金)",time:"10:00~16:30",capacity:12},{code:"A2",date:"4/24(金)",time:"17:00~22:30",capacity:12},{code:"A3",date:"4/24(金)",time:"22:00~5:00",capacity:12},{code:"A4",date:"4/24(金)",time:"5:00~9:00",capacity:5},
     {code:"B1",date:"4/25(土)",time:"10:00~16:30",capacity:12},{code:"B2",date:"4/25(土)",time:"16:00~22:30",capacity:12},{code:"B3",date:"4/25(土)",time:"22:00~5:00",capacity:12},{code:"B4",date:"4/25(土)",time:"5:00~9:00",capacity:5},
-    {code:"C1",date:"4/26(日)",time:"10:00~16:30",capacity:12},{code:"C2",date:"4/26(日)",time:"16:00~22:30",capacity:12},{code:"C3",date:"4/26(日)",time:"22:00~5:00",capacity:12},{code:"C4",date:"4/26(日)",time:"5:00~9:00",capacity:5},
+    {code:"C1",date:"4/26(日)",time:"9:00~16:30",capacity:12},{code:"C2",date:"4/26(日)",time:"16:00~22:30",capacity:12},{code:"C3",date:"4/26(日)",time:"22:00~5:00",capacity:12},{code:"C4",date:"4/26(日)",time:"5:00~9:00",capacity:5},
     {code:"D1",date:"4/27(月)",time:"10:00~16:30",capacity:12},{code:"D2",date:"4/27(月)",time:"16:00~22:30",capacity:12},{code:"D3",date:"4/27(月)",time:"22:00~5:00",capacity:12},{code:"D4",date:"4/27(月)",time:"5:00~9:00",capacity:5},
     {code:"E1",date:"4/28(火)",time:"10:00~16:30",capacity:12},{code:"E2",date:"4/28(火)",time:"16:00~22:30",capacity:12},{code:"E3",date:"4/28(火)",time:"22:00~5:00",capacity:12},{code:"E4",date:"4/28(火)",time:"5:00~9:00",capacity:5},
-    {code:"F1",date:"4/29(水)",time:"10:00~16:30",capacity:12},{code:"F2",date:"4/29(水)",time:"16:00~22:30",capacity:12},{code:"F3",date:"4/29(水)",time:"22:00~5:00",capacity:12},{code:"F4",date:"4/29(水)",time:"5:00~9:00",capacity:5},
+    {code:"F1",date:"4/29(水)",time:"9:00~16:30",capacity:12},{code:"F2",date:"4/29(水)",time:"16:00~22:30",capacity:12},{code:"F3",date:"4/29(水)",time:"22:00~5:00",capacity:12},{code:"F4",date:"4/29(水)",time:"5:00~9:00",capacity:5},
     {code:"G1",date:"4/30(木)",time:"10:00~16:30",capacity:12},{code:"G2",date:"4/30(木)",time:"16:00~22:30",capacity:12},{code:"G3",date:"4/30(木)",time:"22:00~5:00",capacity:12},{code:"G4",date:"4/30(木)",time:"5:00~9:00",capacity:5},
     {code:"H1",date:"5/1(金)",time:"10:00~16:30",capacity:12},{code:"H2",date:"5/1(金)",time:"16:00~22:30",capacity:12},{code:"H3",date:"5/1(金)",time:"22:00~5:00",capacity:12},{code:"H4",date:"5/1(金)",time:"5:00~9:00",capacity:5},
     {code:"I1",date:"5/2(土)",time:"10:00~16:30",capacity:12},{code:"I2",date:"5/2(土)",time:"16:00~22:30",capacity:12},{code:"I3",date:"5/2(土)",time:"22:00~5:00",capacity:12},{code:"I4",date:"5/2(土)",time:"5:00~9:00",capacity:5},
@@ -2212,12 +2212,18 @@ function loadShiftFromStorage(){
         const d=data[ev.id];
         if(!d)return ev;
         const a={},l={};
-        const savedSlots=d.slots||ev.slots;
-        savedSlots.forEach(s=>{
+        // DEFAULT_EVENTSのスロット定義（time/code）を正とし、保存データからcapacityだけ上書き
+        const savedCapMap={};
+        (d.slots||[]).forEach(s=>{savedCapMap[s.code]=s.capacity;});
+        const mergedSlots=ev.slots.map(s=>({
+          ...s,
+          capacity:savedCapMap[s.code]!==undefined?savedCapMap[s.code]:s.capacity
+        }));
+        mergedSlots.forEach(s=>{
           a[s.code]=(d.assigned||{})[s.code]||[];
           l[s.code]=(d.leaders||{})[s.code]??null;
         });
-        return{...ev,slots:d.slots||ev.slots,people:d.people||[],assigned:a,leaders:l,hairMake:d.hairMake||{},hairMakePool:d.hairMakePool||[],manualAssigned:d.manualAssigned||{}};
+        return{...ev,slots:mergedSlots,people:d.people||[],assigned:a,leaders:l,hairMake:d.hairMake||{},hairMakePool:d.hairMakePool||[],manualAssigned:d.manualAssigned||{}};
       });
     }
     if(evId&&shiftEvents.find(e=>e.id===evId))currentEventId=evId;
