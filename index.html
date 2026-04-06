@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.6.18 // 統合管理システム</title>
+<title>COMP v2.6.27 // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -2115,6 +2115,12 @@ const DEFAULT_EVENTS=[
     {code:"L1",date:"5/5(火)",time:"10:00~16:30",capacity:12},{code:"L2",date:"5/5(火)",time:"16:00~22:30",capacity:12},{code:"L3",date:"5/5(火)",time:"22:00~5:00",capacity:12},{code:"L4",date:"5/5(火)",time:"5:00~9:00",capacity:5},
     {code:"M1",date:"5/6(水)",time:"10:00~16:30",capacity:12},{code:"M2",date:"5/6(水)",time:"16:00~22:30",capacity:12},
   ],people:[],assigned:{},leaders:{}},
+  {id:'spadie41th',name:'SPADIE 41st',slots:[
+    {code:"A1",date:"5/21(木)",time:"18:00~22:30",capacity:10},{code:"A2",date:"5/21(木)",time:"22:00~5:00",capacity:10},{code:"A3",date:"5/21(木)",time:"5:00~9:00",capacity:5},
+    {code:"B1",date:"5/22(金)",time:"10:00~16:30",capacity:12},{code:"B2",date:"5/22(金)",time:"16:00~22:30",capacity:12},{code:"B3",date:"5/22(金)",time:"22:00~5:00",capacity:12},{code:"B4",date:"5/22(金)",time:"5:00~9:00",capacity:5},
+    {code:"C1",date:"5/23(土)",time:"9:00~16:30",capacity:12},{code:"C2",date:"5/23(土)",time:"16:00~22:30",capacity:12},{code:"C3",date:"5/23(土)",time:"22:00~5:00",capacity:12},{code:"C4",date:"5/23(土)",time:"5:00~9:00",capacity:5},
+    {code:"D1",date:"5/24(日)",time:"9:00~16:30",capacity:12},{code:"D2",date:"5/24(日)",time:"16:00~22:30",capacity:12},
+  ],people:[],assigned:{},leaders:{}},
 ];
 
 let shiftEvents=DEFAULT_EVENTS.map(e=>{
@@ -2242,20 +2248,167 @@ function loadShiftFromStorage(){
 function resetSession(){if(!confirm("配置・参加者データを全てリセットしますか？"))return;localStorage.removeItem("shift_data_v2");localStorage.removeItem("shift_current_event_v2");location.reload();}
 function switchEvent(id){saveCurrentEventData();saveAllEventsToStorage();currentEventId=id;syncGlobals();renderEventBar();renderShiftEdit();renderShiftStats();renderShiftPeople();syncHairMake();renderShiftSummary();}
 function createNewEvent(){
-  const name=prompt('イベント名を入力してください','新規イベント');if(!name)return;
-  const id='event_'+Date.now();
-  shiftEvents.push({id,name,slots:[],people:[],assigned:{},leaders:{}});
-  saveCurrentEventData();currentEventId=id;syncGlobals();
-  renderEventBar();renderShiftEdit();renderShiftStats();
-  showToast(`"${name}" を作成しました`,'success');saveAllEventsToStorage();
+  openEventSettingsModal(null);
 }
-function deleteEvent(id){
-  const ev=shiftEvents.find(e=>e.id===id);
-  if(!ev||!confirm(`"${ev.name}" を削除しますか？`))return;
-  shiftEvents=shiftEvents.filter(e=>e.id!==id);
-  if(currentEventId===id)currentEventId=shiftEvents[0].id;
-  syncGlobals();renderEventBar();renderShiftEdit();renderShiftStats();saveAllEventsToStorage();
+
+function openEventSettingsModal(evId){
+  const ev=evId?shiftEvents.find(e=>e.id===evId):null;
+  const isNew=!ev;
+  const slots=ev?JSON.parse(JSON.stringify(ev.slots||[])):[]; // deep copy
+
+  const modal=document.createElement('div');
+  modal.id='eventSettingsModal';
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9500;display:flex;align-items:center;justify-content:center;padding:16px;';
+
+  function buildHTML(currentSlots){
+    const slotRows=currentSlots.map((s,i)=>`
+      <tr data-idx="${i}">
+        <td style="padding:4px 3px;"><input class="es-code" value="${s.code}" style="width:48px;${inputStyle}" placeholder="A1"></td>
+        <td style="padding:4px 3px;"><input class="es-date" value="${s.date}" style="width:100px;${inputStyle}" placeholder="5/21(木)"></td>
+        <td style="padding:4px 3px;"><input class="es-time" value="${s.time}" style="width:130px;${inputStyle}" placeholder="10:00~16:30"></td>
+        <td style="padding:4px 3px;"><input class="es-cap" type="number" value="${s.capacity}" style="width:50px;${inputStyle}" min="1"></td>
+        <td style="padding:4px 3px;"><button onclick="esDeleteRow(${i})" style="border:none;background:none;color:#dc2626;cursor:pointer;font-size:14px;" title="削除">✕</button></td>
+      </tr>`).join('');
+    return `
+      <div style="background:#fff;border-radius:16px;width:680px;max-width:96vw;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+        <div style="padding:18px 22px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-size:17px;font-weight:800;color:#1e1f2e;">${isNew?'➕ 新規イベント作成':'⚙️ イベント設定'}</div>
+          <button onclick="document.getElementById('eventSettingsModal').remove()" style="border:none;background:none;font-size:20px;color:#9ca3af;cursor:pointer;">✕</button>
+        </div>
+        <div style="padding:18px 22px;">
+          <div style="margin-bottom:14px;">
+            <label style="font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.05em;display:block;margin-bottom:4px;">イベント名</label>
+            <input id="esEventName" value="${ev?ev.name:''}" placeholder="例: SPADIE 42nd" style="width:100%;${inputStyle}padding:8px 12px;">
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div style="font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.05em;">スロット設定</div>
+            <div style="display:flex;gap:6px;">
+              <button onclick="esAddRow()" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid #4361ee;background:#eef0fd;color:#4361ee;cursor:pointer;font-weight:600;">＋ 行追加</button>
+              <button onclick="esBulkAdd()" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid #6b7280;background:#f9fafb;color:#374151;cursor:pointer;font-weight:600;">📋 まとめて追加</button>
+            </div>
+          </div>
+          <div style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
+            <table style="width:100%;border-collapse:collapse;">
+              <thead><tr style="background:#f9fafb;">
+                <th style="${thStyle}">コード</th>
+                <th style="${thStyle}">日付</th>
+                <th style="${thStyle}">時間</th>
+                <th style="${thStyle}">定員</th>
+                <th style="${thStyle}"></th>
+              </tr></thead>
+              <tbody id="esSlotBody">${slotRows}</tbody>
+            </table>
+          </div>
+          <div style="margin-top:6px;font-size:10px;color:#9ca3af;">日付例: 5/21(木)　時間例: 10:00~16:30</div>
+        </div>
+        <div style="padding:14px 22px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;gap:8px;">
+          ${!isNew?`<button onclick="deleteEvent('${evId}');document.getElementById('eventSettingsModal').remove()" style="padding:8px 14px;border-radius:8px;border:1.5px solid #fca5a5;background:#fff;color:#dc2626;font-weight:600;cursor:pointer;font-size:12px;">🗑 削除</button>`:''}
+          <button onclick="document.getElementById('eventSettingsModal').remove()" style="padding:8px 16px;border-radius:8px;border:1.5px solid #e5e7eb;background:#fff;color:#374151;font-weight:600;cursor:pointer;font-size:12px;">キャンセル</button>
+          <button onclick="esSave('${evId||''}')" style="padding:8px 20px;border-radius:8px;border:none;background:#4361ee;color:#fff;font-weight:700;cursor:pointer;font-size:12px;">${isNew?'作成':'保存'}</button>
+        </div>
+      </div>`;
+  }
+
+  const inputStyle='border:1px solid #e5e7eb;border-radius:6px;padding:5px 8px;font-size:12px;font-family:inherit;outline:none;box-sizing:border-box;';
+  const thStyle='padding:6px 8px;font-size:10px;font-weight:700;color:#6b7280;letter-spacing:.05em;text-align:left;border-bottom:1px solid #e5e7eb;';
+
+  modal.innerHTML=buildHTML(slots);
+  document.body.appendChild(modal);
+  modal.addEventListener('click',e=>{if(e.target===modal)modal.remove();});
+
+  // スロット操作関数
+  window.esGetSlots=function(){
+    const rows=document.querySelectorAll('#esSlotBody tr');
+    const result=[];
+    rows.forEach(tr=>{
+      const code=tr.querySelector('.es-code')?.value.trim();
+      const date=tr.querySelector('.es-date')?.value.trim();
+      const time=tr.querySelector('.es-time')?.value.trim();
+      const cap=parseInt(tr.querySelector('.es-cap')?.value)||12;
+      if(code&&date&&time) result.push({code,date,time,capacity:cap});
+    });
+    return result;
+  };
+
+  window.esAddRow=function(){
+    const tbody=document.getElementById('esSlotBody');
+    const idx=tbody.querySelectorAll('tr').length;
+    const tr=document.createElement('tr');tr.dataset.idx=idx;
+    tr.innerHTML=`
+      <td style="padding:4px 3px;"><input class="es-code" style="width:48px;${inputStyle}" placeholder="A1"></td>
+      <td style="padding:4px 3px;"><input class="es-date" style="width:100px;${inputStyle}" placeholder="5/21(木)"></td>
+      <td style="padding:4px 3px;"><input class="es-time" style="width:130px;${inputStyle}" placeholder="10:00~16:30"></td>
+      <td style="padding:4px 3px;"><input class="es-cap" type="number" value="12" style="width:50px;${inputStyle}" min="1"></td>
+      <td style="padding:4px 3px;"><button onclick="this.closest('tr').remove()" style="border:none;background:none;color:#dc2626;cursor:pointer;font-size:14px;">✕</button></td>`;
+    tbody.appendChild(tr);
+    tr.querySelector('.es-code').focus();
+  };
+
+  window.esDeleteRow=function(idx){
+    const tr=document.querySelector(`#esSlotBody tr[data-idx="${idx}"]`);
+    if(tr)tr.remove();
+  };
+
+  window.esBulkAdd=function(){
+    const text=prompt(
+      '日付ごとのスロットをまとめて入力（1行1スロット）\n例:\nA1,5/21(木),18:00~22:30,10\nA2,5/21(木),22:00~5:00,10\nB1,5/22(金),10:00~16:30,12',
+      ''
+    );
+    if(!text)return;
+    const tbody=document.getElementById('esSlotBody');
+    text.trim().split('\n').forEach(line=>{
+      const parts=line.split(',').map(p=>p.trim());
+      if(parts.length<3)return;
+      const [code,date,time,cap]=parts;
+      const idx=tbody.querySelectorAll('tr').length;
+      const tr=document.createElement('tr');tr.dataset.idx=idx;
+      tr.innerHTML=`
+        <td style="padding:4px 3px;"><input class="es-code" value="${code||''}" style="width:48px;${inputStyle}"></td>
+        <td style="padding:4px 3px;"><input class="es-date" value="${date||''}" style="width:100px;${inputStyle}"></td>
+        <td style="padding:4px 3px;"><input class="es-time" value="${time||''}" style="width:130px;${inputStyle}"></td>
+        <td style="padding:4px 3px;"><input class="es-cap" type="number" value="${parseInt(cap)||12}" style="width:50px;${inputStyle}" min="1"></td>
+        <td style="padding:4px 3px;"><button onclick="this.closest('tr').remove()" style="border:none;background:none;color:#dc2626;cursor:pointer;font-size:14px;">✕</button></td>`;
+      tbody.appendChild(tr);
+    });
+  };
+
+  window.esSave=function(existingId){
+    const name=document.getElementById('esEventName').value.trim();
+    if(!name){showToast('イベント名を入力してください','error');return;}
+    const newSlots=window.esGetSlots();
+    if(!newSlots.length){showToast('スロットを1つ以上追加してください','error');return;}
+
+    if(existingId){
+      // 既存イベントの更新
+      const ev=shiftEvents.find(e=>e.id===existingId);
+      if(!ev)return;
+      ev.name=name;
+      // スロットはtime/code更新、既存capacityはcapacityMapで保持
+      const oldCapMap={};
+      (ev.slots||[]).forEach(s=>{oldCapMap[s.code]=s.capacity;});
+      ev.slots=newSlots.map(s=>({...s,capacity:oldCapMap[s.code]!==undefined?oldCapMap[s.code]:s.capacity}));
+      // assigned/leadersに新スロットを反映
+      newSlots.forEach(s=>{
+        if(!ev.assigned[s.code])ev.assigned[s.code]=[];
+        if(!(s.code in ev.leaders))ev.leaders[s.code]=null;
+      });
+    } else {
+      // 新規作成
+      const id='event_'+Date.now();
+      const a={},l={};
+      newSlots.forEach(s=>{a[s.code]=[];l[s.code]=null;});
+      shiftEvents.push({id,name,slots:newSlots,people:[],assigned:a,leaders:l});
+      currentEventId=id;
+    }
+
+    saveCurrentEventData();syncGlobals();
+    renderEventBar();renderShiftEdit();renderShiftStats();
+    saveAllEventsToStorage();
+    document.getElementById('eventSettingsModal').remove();
+    showToast(existingId?`"${name}" を更新しました`:`"${name}" を作成しました`,'success');
+  };
 }
+
 function isLeaderCapable(name){const nl=name.toLowerCase().replace(/[②③④⑤]/g,'').trim();const c=companions.find(c=>c.name.toLowerCase()===name.toLowerCase()||(c.aliases||[]).some(a=>a.trim().toLowerCase()===name.toLowerCase())||c.name.toLowerCase()===nl);return c?!!c.leader:false;}
 
 function switchShiftTab(tab){
@@ -2290,8 +2443,8 @@ function renderEventBar(){
   const bar=document.getElementById('eventBar');if(!bar)return;
   let html=shiftEvents.map(ev=>{
     const isCur=ev.id===currentEventId;
-    const delBtn=isCur?`<span onclick="event.stopPropagation();deleteEvent('${ev.id}')" style="margin-left:5px;opacity:.55;font-size:9px">✕</span>`:'';
-    return`<button class="event-pill${isCur?' active':''}" onclick="switchEvent('${ev.id}')">${ev.name}${delBtn}</button>`;
+    const editBtn=isCur?`<span onclick="event.stopPropagation();openEventSettingsModal('${ev.id}')" style="margin-left:4px;opacity:.65;font-size:10px;cursor:pointer;" title="スロット設定">⚙️</span>`:'';
+    return`<button class="event-pill${isCur?' active':''}" onclick="switchEvent('${ev.id}')">${ev.name}${editBtn}</button>`;
   }).join('');
   html+=`<button class="event-pill" onclick="createNewEvent()">＋ 新規</button>`;
   bar.innerHTML=html;
@@ -2381,8 +2534,8 @@ function renderListTable(){
     const cap=s.capacity;
     const capColor=asgn.length>cap?'var(--green)':asgn.length>=cap?'#2B5BA8':asgn.length>0?'#ef4444':'var(--text-muted)';
     const ldrCands=asgn.filter(n=>isLeaderCapable(n));
-    if(!slotLeaders[s.code]&&ldrCands.length>0)slotLeaders[s.code]=ldrCands[0];
-    if(slotLeaders[s.code]&&!asgn.includes(slotLeaders[s.code]))slotLeaders[s.code]=ldrCands[0]||null;
+    if(slotLeaders[s.code]===null&&ldrCands.length>0)slotLeaders[s.code]=ldrCands[0];
+    if(slotLeaders[s.code]&&slotLeaders[s.code]!==''&&!asgn.includes(slotLeaders[s.code]))slotLeaders[s.code]=ldrCands[0]||null;
     const curLdr=slotLeaders[s.code];
 
     const tdCode=document.createElement('td');tdCode.className='list-slot-code';tdCode.textContent=s.code;
@@ -2400,8 +2553,19 @@ function renderListTable(){
     if(!ldrCands.length){tdLdr.innerHTML='<span class="leader-none">—</span>';}
     else{
       const sel=document.createElement('select');sel.className='leader-sel';
+      const emptyOpt=document.createElement('option');emptyOpt.value='';emptyOpt.textContent='— 未設定';
+      if(!curLdr)emptyOpt.selected=true;
+      sel.appendChild(emptyOpt);
       ldrCands.forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent='👑 '+n;if(n===curLdr)o.selected=true;sel.appendChild(o);});
-      sel.addEventListener('change',()=>setSlotLeader(s.code,sel.value));
+      sel.addEventListener('change',()=>{
+        const ev=currentEvent();
+        if(!sel.value){
+          ev.leaders[s.code]=''; // 意図的な未設定（nullは自動アサイン対象になるため区別）
+        } else {
+          ev.leaders[s.code]=sel.value;
+        }
+        saveCurrentEventData();renderShiftStats();saveAllEventsToStorage();
+      });
       tdLdr.appendChild(sel);
     }
 
@@ -2706,17 +2870,28 @@ async function handleFormCSVText(text){
         .replace(/[\uff10-\uff19]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0))
         .replace(/[\uff01-\uff5e]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0))
         .replace(/：/g,':');
-      // カンマ区切りで分割して各エントリの「開始時刻」を抽出
-      const entryStarts=normalizedCell.split(',').map(e=>{
-        const m=e.match(/(\d{1,2}:\d{2})/);
-        return m?m[1]:null;
-      }).filter(Boolean);
+      // カンマ区切りで分割して各エントリからスロットコードを抽出（直接コード優先、時刻フォールバック）
       const slots=targetEvent?targetEvent.slots||[]:[];
-      slots.forEach(s=>{
-        const slotDate=s.date.replace(/\(.*\)/,'').trim();
-        if(slotDate!==colDate)return;
-        const startTime=s.time.split('~')[0];
-        if(entryStarts.includes(startTime)) wishes.add(s.code);
+      normalizedCell.split(',').forEach(entry=>{
+        const trimmed=entry.trim();
+        // ① スロットコードの直接マッチ（例: "A1" "B2" "C3"）
+        const codeMatch=trimmed.match(/^([A-Z]\d+)\s/);
+        if(codeMatch){
+          const code=codeMatch[1];
+          if(slots.some(s=>s.code===code)) {wishes.add(code);return;}
+        }
+        // ② 時刻マッチ（開始時刻でスロット特定）
+        const timeMatch=trimmed.match(/(\d{1,2}:\d{2})/);
+        if(timeMatch){
+          const startTime=timeMatch[1];
+          const dateMatch2=colHeader.match(/(\d+\/\d+)/);
+          if(dateMatch2){
+            slots.forEach(s=>{
+              const slotDate=s.date.replace(/\(.*\)/,'').trim();
+              if(slotDate===dateMatch2[1]&&s.time.split('~')[0]===startTime) wishes.add(s.code);
+            });
+          }
+        }
       });
     });
     const hairVal=(hairIdx>=0?(row[hairIdx]||'').trim():'');
@@ -2730,74 +2905,80 @@ async function handleFormCSVText(text){
   saveCurrentEventData();
 
   // ── 差分インポート処理 ──
-  // 希望スロットが変わった人だけ配置をリセット、変わってない人は維持
+  // 手動配置は常に維持。自動配置は「希望が変わった日付のスロット」のみリセット
   const prevPeople = targetEvent.people || [];
   const prevAssigned = targetEvent.assigned || {};
 
-  // 新しいassignedを構築
   const newAssigned = {};
   (targetEvent.slots||[]).forEach(s=>{ newAssigned[s.code] = []; });
 
-  // 新CSVに存在する人 → 希望変化をチェック
-  const resetNames = new Set(); // 配置をリセットする人
-  const removedNames = new Set(); // CSVから消えた人
+  const removedNames = new Set();
+  // 人ごとの「リセット対象日付」マップ
+  const resetDatesByName = {}; // name → Set of dates
 
-  // CSVから消えた人を特定
+  // CSVから消えた人
   prevPeople.forEach(prev=>{
     if(!people.find(p=>p.name===prev.name)) removedNames.add(prev.name);
   });
 
-  // 希望スロットが変わった人を特定
+  // 希望が変わった人の「変更のあった日付」だけ特定
   people.forEach(newP=>{
     const prevP = prevPeople.find(p=>p.name===newP.name);
-    if(!prevP){
-      // 新規追加 → 配置なし（通常通り）
-      return;
-    }
-    // 希望スロットを比較
+    if(!prevP) return;
     const prevWishes = new Set(prevP.wishes||[]);
     const newWishes = new Set(newP.wishes||[]);
-    const changed = prevWishes.size !== newWishes.size ||
-      [...newWishes].some(w=>!prevWishes.has(w)) ||
-      [...prevWishes].some(w=>!newWishes.has(w));
-    if(changed) resetNames.add(newP.name);
+    if(prevWishes.size===newWishes.size && [...newWishes].every(w=>prevWishes.has(w))) return;
+
+    // 変化があったスロットコードを収集して、その日付を特定
+    const changedCodes = new Set([
+      ...[...newWishes].filter(w=>!prevWishes.has(w)),
+      ...[...prevWishes].filter(w=>!newWishes.has(w))
+    ]);
+    const changedDates = new Set(
+      (targetEvent.slots||[])
+        .filter(s=>changedCodes.has(s.code))
+        .map(s=>s.date)
+    );
+    if(changedDates.size>0) resetDatesByName[newP.name]=changedDates;
   });
 
-  // 既存の配置から有効なものだけ引き継ぐ
   const prevManual = targetEvent.manualAssigned || {};
   const newManual = {};
   (targetEvent.slots||[]).forEach(s=>{ newManual[s.code] = []; });
 
   Object.entries(prevAssigned).forEach(([code, names])=>{
     if(!newAssigned[code]) return;
+    const slotDate = (targetEvent.slots||[]).find(s=>s.code===code)?.date;
     names.forEach(name=>{
-      // CSVから消えた人は除外（手動配置でも削除）
       if(removedNames.has(name)) return;
-      // 手動で入れた人は希望変更に関わらず維持
       const isManual = (prevManual[code]||[]).includes(name);
       if(isManual){
+        // 手動配置は常に維持
         newAssigned[code].push(name);
         if(!newManual[code])newManual[code]=[];
         newManual[code].push(name);
         return;
       }
-      // 希望変更した人は除外
-      if(resetNames.has(name)) return;
-      // 新CSVに存在する人のみ引き継ぎ
+      // 自動配置：希望変更のあった日付のスロットのみリセット
+      const resetDates = resetDatesByName[name];
+      if(resetDates && slotDate && resetDates.has(slotDate)) return;
       if(people.find(p=>p.name===name)){
         newAssigned[code].push(name);
       }
     });
   });
 
-  // リーダー情報も同様に引き継ぎ（除外対象でない場合のみ）
+  // リーダー情報も同様に引き継ぎ
   const newLeaders = {};
   (targetEvent.slots||[]).forEach(s=>{
     const prevLdr = (targetEvent.leaders||{})[s.code];
-    if(prevLdr && !removedNames.has(prevLdr) && !resetNames.has(prevLdr)){
+    const slotDate = s.date;
+    const ldrResetDates = prevLdr ? resetDatesByName[prevLdr] : null;
+    const ldrReset = ldrResetDates && slotDate && ldrResetDates.has(slotDate);
+    if(prevLdr && !removedNames.has(prevLdr) && !ldrReset){
       newLeaders[s.code] = prevLdr;
     } else {
-      newLeaders[s.code] = null;
+      newLeaders[s.code] = (targetEvent.leaders||{})[s.code]==='' ? '' : null;
     }
   });
 
@@ -2808,7 +2989,7 @@ async function handleFormCSVText(text){
   targetEvent.manualAssigned = newManual||{};
 
   // トースト通知
-  const resetCount = resetNames.size;
+  const resetCount = Object.keys(resetDatesByName).length;
   const removeCount = removedNames.size;
   const msgs = [];
   if(resetCount) msgs.push(`${resetCount}名の配置リセット`);
@@ -3337,10 +3518,11 @@ function exportShiftTable(){
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,'Hiragino Kaku Gothic ProN',sans-serif;font-size:11px;color:#111;background:#fff;}
-.hd{background:#1e2a5e;color:#fff;padding:6px 8px;display:flex;justify-content:space-between;align-items:center;}
+.hd{background:#1e2a5e;color:#fff;padding:6px 8px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:20;}
 .hd-t{font-size:13px;font-weight:800;}
 .hd-s{font-size:9px;opacity:.75;text-align:right;}
 table{width:100%;border-collapse:collapse;}
+thead{position:sticky;top:32px;z-index:10;}
 tr:nth-child(odd) td{background:#f5f6ff;}
 .ds td{background:#1e2a5e!important;color:#fff;font-weight:700;font-size:10px;padding:3px 5px;}
 .cd{padding:2px 4px;font-weight:800;color:#1a4db8;font-size:12px;white-space:nowrap;width:28px;}
