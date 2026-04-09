@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>COMP v2.6.27 // 統合管理システム</title>
+<title>COMP v2.6.30 // 統合管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -2870,27 +2870,41 @@ async function handleFormCSVText(text){
         .replace(/[\uff10-\uff19]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0))
         .replace(/[\uff01-\uff5e]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0))
         .replace(/：/g,':');
-      // カンマ区切りで分割して各エントリからスロットコードを抽出（直接コード優先、時刻フォールバック）
+      // カンマ区切りで分割してスロット特定（コードと時刻の両方で検証）
       const slots=targetEvent?targetEvent.slots||[]:[];
+      const dateMatch2=colHeader.match(/(\d+\/\d+)/);
+      const colDate=dateMatch2?dateMatch2[1]:null;
       normalizedCell.split(',').forEach(entry=>{
         const trimmed=entry.trim();
-        // ① スロットコードの直接マッチ（例: "A1" "B2" "C3"）
-        const codeMatch=trimmed.match(/^([A-Z]\d+)\s/);
-        if(codeMatch){
-          const code=codeMatch[1];
-          if(slots.some(s=>s.code===code)) {wishes.add(code);return;}
-        }
-        // ② 時刻マッチ（開始時刻でスロット特定）
+        // エントリから開始時刻を抽出
         const timeMatch=trimmed.match(/(\d{1,2}:\d{2})/);
-        if(timeMatch){
-          const startTime=timeMatch[1];
-          const dateMatch2=colHeader.match(/(\d+\/\d+)/);
-          if(dateMatch2){
-            slots.forEach(s=>{
-              const slotDate=s.date.replace(/\(.*\)/,'').trim();
-              if(slotDate===dateMatch2[1]&&s.time.split('~')[0]===startTime) wishes.add(s.code);
-            });
+        const entryStartMin=timeMatch?parseInt(timeMatch[1])*60+parseInt(timeMatch[1].split(':')[1]):null;
+
+        // ① コード直接マッチ＋時刻検証（時刻が30分以内にマッチする場合のみ採用）
+        const codeMatch=trimmed.match(/^([A-Z]\d+)\s/);
+        if(codeMatch&&colDate){
+          const code=codeMatch[1];
+          const targetSlot=slots.find(s=>s.code===code&&s.date.replace(/\(.*\)/,'').trim()===colDate);
+          if(targetSlot){
+            // 時刻もあれば検証、なければコードのみで採用
+            if(entryStartMin===null){wishes.add(code);return;}
+            const slotStartMin=parseInt(targetSlot.time)*60+parseInt(targetSlot.time.split(':')[1]);
+            const slotH=parseInt(targetSlot.time.split(':')[0]);
+            const slotMin=parseInt(targetSlot.time.split('~')[0].split(':')[1]);
+            const slotTotalMin=slotH*60+slotMin;
+            if(Math.abs(entryStartMin-slotTotalMin)<=30){wishes.add(code);return;}
           }
+        }
+        // ② 時刻マッチ（±30分でスロット特定）
+        if(entryStartMin!==null&&colDate){
+          slots.forEach(s=>{
+            const slotDate=s.date.replace(/\(.*\)/,'').trim();
+            if(slotDate!==colDate)return;
+            const sh=parseInt(s.time.split(':')[0]);
+            const sm=parseInt(s.time.split('~')[0].split(':')[1]);
+            const slotTotalMin=sh*60+sm;
+            if(Math.abs(entryStartMin-slotTotalMin)<=30) wishes.add(s.code);
+          });
         }
       });
     });
@@ -3497,7 +3511,7 @@ function exportShiftTable(){
     const daySlots=slots.filter(s=>s.date===date);
     const totalA=daySlots.reduce((a,s)=>a+(asgn[s.code]||[]).length,0);
     const totalC=daySlots.reduce((a,s)=>a+s.capacity,0);
-    rows+=`<tr class="ds"><td colspan="5">${date}　${totalA}/${totalC}</td></tr>`;
+    rows+=`<tr class="ds"><td colspan="5">${date}</td></tr>`;
     daySlots.forEach(s=>{
       const names=asgn[s.code]||[];
       const ldr=ldrs[s.code]||'';
@@ -4148,7 +4162,9 @@ function pcInput(n){
   if(pcValue.length>=6)return;
   pcValue+=n;
   updateDots();
-  if(pcValue.length===6||(pcCorrect&&pcValue.length===pcCorrect.length)){
+  // 6桁 or pcCorrectの桁数に達したら判定（pcCorrect未読込なら最大1秒待つ）
+  const targetLen=pcCorrect?pcCorrect.length:6;
+  if(pcValue.length>=targetLen){
     setTimeout(checkPasscode,120);
   }
 }
@@ -4165,11 +4181,18 @@ function updateDots(){
   }
 }
 
+let _pcRetry=0;
 function checkPasscode(){
   if(pcCorrect===null){
-    // まだ読み込み中なら少し待って再試行
+    _pcRetry++;
+    if(_pcRetry>20){
+      // 6秒待っても取れなかった場合はエラー表示
+      document.getElementById('pcHint').textContent='サーバーに接続できません。再読み込みしてください';
+      _pcRetry=0;return;
+    }
     setTimeout(checkPasscode,300);return;
   }
+  _pcRetry=0;
   if(pcValue===pcCorrect){
     sessionStorage.setItem('pc_auth',Date.now().toString());
     document.getElementById('passcodeScreen').style.display='none';
